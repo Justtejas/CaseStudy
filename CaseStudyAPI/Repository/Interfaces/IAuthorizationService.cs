@@ -1,6 +1,6 @@
 ﻿using CaseStudyAPI.Data;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Interfaces
 {
     public interface IAuthorizationService
     {

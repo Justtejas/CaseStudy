@@ -6,7 +6,8 @@ using System.Text;
 using CaseStudyAPI.Data;
 using System.Security.Claims;
 using CaseStudyAPI.Mapping;
-using CaseStudyAPI.Repository;
+using CaseStudyAPI.Repository.Services;
+using CaseStudyAPI.Repository.Interfaces;
 namespace CaseStudyAPI
 {
     public class Program

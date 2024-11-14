@@ -1,8 +1,9 @@
 ﻿using CaseStudyAPI.Data;
 using CaseStudyAPI.Models;
+using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Services
 {
     public class ResumeServices : IResumeServices
     {
@@ -12,9 +13,9 @@ namespace CaseStudyAPI.Repository
         {
             _context = context;
         }
-        public async Task<Response> CreateResumeAsync(string jobSeekerId,IFormFile resume)
+        public async Task<Response> CreateResumeAsync(string jobSeekerId, IFormFile resume)
         {
-             if (resume.ContentType != "application/pdf")
+            if (resume.ContentType != "application/pdf")
                 throw new InvalidOperationException("Only PDF resumes are allowed.");
 
             if (resume.Length > FILE_SIZE_LIMIT)
@@ -46,7 +47,7 @@ namespace CaseStudyAPI.Repository
 
         public async Task<bool> DeleteResumeAsync(string resumeId, string jobSeekerId)
         {
-              var resume = await _context.Resumes.Where(r => r.ResumeId == resumeId && r.JobSeekerId == jobSeekerId).SingleOrDefaultAsync();
+            var resume = await _context.Resumes.Where(r => r.ResumeId == resumeId && r.JobSeekerId == jobSeekerId).SingleOrDefaultAsync() ?? throw new InvalidOperationException("File not found or you do not have permission to delete it."); ;
             if (resume != null)
             {
                 _context.Remove(resume);

@@ -1,7 +1,7 @@
 ﻿using CaseStudyAPI.Data;
 using CaseStudyAPI.Models;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Interfaces
 {
     public interface IEmployerServices
     {

@@ -1,7 +1,7 @@
 ﻿using CaseStudyAPI.Data;
 using CaseStudyAPI.DTO;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Interfaces
 {
     public interface IUserServices
     {

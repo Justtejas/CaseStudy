@@ -1,6 +1,6 @@
 ﻿using CaseStudyAPI.Models;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Interfaces
 {
     public interface IJobListingServices
     {
@@ -9,6 +9,6 @@ namespace CaseStudyAPI.Repository
         public Task<List<JobListing>> GetJobListingByEmployerIdAsync(string employerId);
         public Task<JobListing> CreateJobListingAsync(JobListing jobListing);
         public Task<bool> UpdateJobListingAsync(JobListing jobListing);
-        public Task<bool> DeleteJobListingAsync(string jobListingId);
+        public Task<bool> DeleteJobListingAsync(string jobListingId,string employerId);
     }
 }

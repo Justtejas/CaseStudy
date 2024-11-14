@@ -1,38 +1,42 @@
 ﻿using CaseStudyAPI.Data;
 using CaseStudyAPI.Models;
+using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Services
 {
     public class JobListingServices : IJobListingServices
     {
 
         private readonly ApplicationDBContext _appDBContext;
-        public JobListingServices( ApplicationDBContext appDBContext)
+        public JobListingServices(ApplicationDBContext appDBContext)
         {
             _appDBContext = appDBContext;
         }
         public async Task<JobListing> CreateJobListingAsync(JobListing jobListing)
         {
-             try
+            try
             {
                 jobListing.JobListingId = Guid.NewGuid().ToString();
                 jobListing.PostedDate = DateTime.Now;
-                var createdJobListing = await _appDBContext.JobListings.AddAsync(jobListing);
+
+                await _appDBContext.JobListings.AddAsync(jobListing);
                 await _appDBContext.SaveChangesAsync();
+
                 return jobListing;
             }
             catch (Exception ex)
-            {   
+            {
+                Console.WriteLine(ex.Message);
                 return null;
             }
         }
 
-        public async Task<bool> DeleteJobListingAsync(string jobListingId)
+        public async Task<bool> DeleteJobListingAsync(string jobListingId, string employerId)
         {
             try
             {
-                var jobListing = await _appDBContext.JobListings.FirstOrDefaultAsync(j => j.JobListingId == jobListingId);
+                var jobListing = await _appDBContext.JobListings.FirstOrDefaultAsync(j => j.JobListingId == jobListingId && j.EmployerId == employerId) ?? throw new InvalidOperationException("Job Listing not found or you do not have permission to delete it."); ;
                 if (jobListing == null)
                 {
                     return false;
@@ -61,8 +65,8 @@ namespace CaseStudyAPI.Repository
 
         public async Task<JobListing> GetJobListingByIdAsync(string jobListingId)
         {
-            var jobListing =  await _appDBContext.JobListings.FirstOrDefaultAsync(j => j.JobListingId == jobListingId);
-            if(jobListing == null)
+            var jobListing = await _appDBContext.JobListings.FirstOrDefaultAsync(j => j.JobListingId == jobListingId);
+            if (jobListing == null)
             {
                 return null;
             }
@@ -74,7 +78,7 @@ namespace CaseStudyAPI.Repository
             try
             {
                 var existingJobListing = await _appDBContext.JobListings
-                    .FirstOrDefaultAsync(j => j.JobListingId == jobListing.JobListingId);
+                    .FirstOrDefaultAsync(j => j.JobListingId == jobListing.JobListingId && j.EmployerId == jobListing.EmployerId) ??  throw new InvalidOperationException("Job Listing not found or you do not have permission to update it.");;
 
                 if (existingJobListing == null)
                 {

@@ -1,12 +1,13 @@
 ﻿using CaseStudyAPI.Data;
 using CaseStudyAPI.Models;
+using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Services
 {
     public class AuthorizationService : IAuthorizationService
     {

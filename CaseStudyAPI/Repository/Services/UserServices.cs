@@ -2,8 +2,9 @@
 using CaseStudyAPI.Data;
 using CaseStudyAPI.DTO;
 using CaseStudyAPI.Models;
+using CaseStudyAPI.Repository.Interfaces;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Services
 {
     public class UserServices : IUserServices
     {

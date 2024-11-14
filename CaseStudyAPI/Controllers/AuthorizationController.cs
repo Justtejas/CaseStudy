@@ -1,5 +1,5 @@
 ﻿using CaseStudyAPI.DTO;
-using CaseStudyAPI.Repository;
+using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CaseStudyAPI.Controllers

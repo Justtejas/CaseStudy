@@ -1,12 +1,13 @@
 ﻿using CaseStudyAPI.Data;
 using CaseStudyAPI.Models;
+using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Services
 {
     public class JobSeekerServices : IJobSeekerServices
     {
-        
+
         private readonly IAuthorizationService _authorizationServices;
         private readonly ApplicationDBContext _appDBContext;
         public JobSeekerServices(IAuthorizationService authServices, ApplicationDBContext appDBContext)
@@ -21,7 +22,7 @@ namespace CaseStudyAPI.Repository
                 var jobSeekerExists = await _appDBContext.JobSeekers.FirstOrDefaultAsync(j => j.UserName == jobseeker.UserName || j.Email == jobseeker.Email);
                 if (jobSeekerExists != null)
                 {
-                  return new Response { Status = "Failure" , Message = "An Job Seeker with this username or email already exists."};
+                    return new Response { Status = "Failure", Message = "An Job Seeker with this username or email already exists." };
                 }
                 jobseeker.Password = await _authorizationServices.HashPasswordAsync(jobseeker.Password);
                 jobseeker.JobSeekerId = Guid.NewGuid().ToString();

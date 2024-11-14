@@ -1,8 +1,9 @@
 ﻿using CaseStudyAPI.Data;
 using CaseStudyAPI.Models;
+using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace CaseStudyAPI.Repository
+namespace CaseStudyAPI.Repository.Services
 {
     public class EmployerServices : IEmployerServices
     {
@@ -13,7 +14,7 @@ namespace CaseStudyAPI.Repository
             _authorizationServices = authServices;
             _appDBContext = appDBContext;
         }
-        
+
         public async Task<Response> CreateEmployerAsync(Employer employer)
         {
             try
@@ -21,7 +22,7 @@ namespace CaseStudyAPI.Repository
                 var employerExists = await _appDBContext.Employers.FirstOrDefaultAsync(e => e.UserName == employer.UserName || e.Email == employer.Email);
                 if (employerExists != null)
                 {
-                  return new Response { Status = "Failure" , Message = "An employer with this username or email already exists."};
+                    return new Response { Status = "Failure", Message = "An employer with this username or email already exists." };
                 }
                 employer.Password = await _authorizationServices.HashPasswordAsync(employer.Password);
                 employer.EmployerId = Guid.NewGuid().ToString();

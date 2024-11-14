@@ -1,5 +1,5 @@
 ﻿using CaseStudyAPI.Models;
-using CaseStudyAPI.Repository;
+using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -16,6 +16,7 @@ namespace CaseStudyAPI.Controllers
             _jobListingServices = jobListingServices;
         }
 
+        [Authorize(Roles = "Employer,JobSeeker")]
         [HttpGet]
         [Route("GetAllJobListings")]
         public async Task<ActionResult<List<JobListing>>> GetAllJobListingsAsync()
@@ -111,20 +112,26 @@ namespace CaseStudyAPI.Controllers
         [Authorize(Roles = "Employer")]
         [HttpPost]
         [Route("CreateJobListing")]
-        public async Task<ActionResult<JobListing>> CreateJobListingAsync([FromBody] JobListing model)
+        public async Task<ActionResult<JobListing>> CreateJobListingAsync([FromBody] JobListing jobListing)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
-                if (model == null)
+                jobListing.EmployerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var createdListing = await _jobListingServices.CreateJobListingAsync(jobListing);
+
+                if (createdListing == null)
                 {
-                    return BadRequest(new
+                    return StatusCode(StatusCodes.Status500InternalServerError, new
                     {
                         success = false,
-                        message = "Null Object"
+                        error = "An error occurred while saving the job listing."
                     });
                 }
-                model.EmployerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var createdListing = await _jobListingServices.CreateJobListingAsync(model);
+
                 return Ok(new
                 {
                     success = true,
@@ -136,7 +143,7 @@ namespace CaseStudyAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
-                    error = "An error occurred while creating Listing."
+                    error = ex.Message
                 });
             }
         }
@@ -156,10 +163,11 @@ namespace CaseStudyAPI.Controllers
                         message = "Invalid Data"
                     });
                 }
+                model.EmployerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                var listingUpd = await _jobListingServices.UpdateJobListingAsync(model);
+                var jobListing = await _jobListingServices.UpdateJobListingAsync(model);
 
-                if (listingUpd == false)
+                if (jobListing == false)
                 {
                     return BadRequest(new
                     {
@@ -193,7 +201,8 @@ namespace CaseStudyAPI.Controllers
         {
             try
             {
-                var jobListing = await _jobListingServices.DeleteJobListingAsync(jobListingId);
+                var employerID = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var jobListing = await _jobListingServices.DeleteJobListingAsync(jobListingId, employerID);
                 if (jobListing == false)
                 {
                     return BadRequest(new
