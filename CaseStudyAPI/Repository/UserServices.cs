@@ -1,114 +1,41 @@
-﻿using CaseStudyAPI.Authentication;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+﻿using AutoMapper;
+using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
+using CaseStudyAPI.Models;
 
 namespace CaseStudyAPI.Repository
 {
     public class UserServices : IUserServices
     {
-
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IConfiguration _configuration;
-
-        public UserServices(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IEmployerServices _employerServices;
+        private readonly IJobSeekerServices _jobSeekerServices;
+        private readonly IMapper _mapper;
+        public UserServices(IAuthorizationService authorizationService, IEmployerServices employerServices, IMapper mapper, IJobSeekerServices jobSeekerServices)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _configuration = configuration;
+            _authorizationService = authorizationService;
+            _employerServices = employerServices;
+            _mapper = mapper;
+            _jobSeekerServices = jobSeekerServices;
         }
-        public async Task<TokenResponse?> Login(LoginModel model)
+        public async Task<TokenResponse> LoginAsync<T>(T login)
         {
-            var user = await _userManager.FindByNameAsync(model.Username);
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
-            {
-                var userRoles = await _userManager.GetRolesAsync(user);
-
-                var authClaims = new List<Claim>
-                {
-                    new (ClaimTypes.Name, user.UserName),
-                    new (ClaimTypes.NameIdentifier, user.Id),
-                    new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                }
-
-                var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]));
-
-                var token = new JwtSecurityToken(
-                    issuer: _configuration["JWT:Issuer"],
-                    audience: _configuration["JWT:Audience"],
-                    expires: DateTime.Now.AddMinutes(20),
-                    claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                    );
-
-                return new TokenResponse
-                {
-                    Token = new JwtSecurityTokenHandler().WriteToken(token),
-                    Expiration = token.ValidTo
-                };
-            }
-            return null;
+            var token = await _authorizationService.GenerateJWTTokenAsync(login);
+            return token;
         }
 
-        public async Task<Response> Register(RegisterModel model)
+        public async Task<Response> RegisterEmployerAsync(RegisterEmployerDTO regEmployer)
         {
-            var userExist = await _userManager.FindByNameAsync(model.Username);
-            if (userExist != null)
-            {
-                return new Response
-                {
-                    Status = "Error",
-                    Message = "User already Exist!"
-                };
-            }
+            var employeeToRegister = _mapper.Map<Employer>(regEmployer);
+            var result = await _employerServices.CreateEmployerAsync(employeeToRegister);
+            return result;
+        }
 
-            ApplicationUser user = new()
-            {
-                Email = model.Email,
-                UserName = model.Username,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded)
-            {
-                return new Response
-                {
-                    Status = "Error",
-                    Message = " User Creation Failed! Please check the user details and try again"
-                };
-            }
-            if (model.Role.ToLower() == "jobseeker")
-            {
-                if (!await _roleManager.RoleExistsAsync(UserRoles.JobSeeker))
-                {
-                    await _roleManager.CreateAsync(new IdentityRole(UserRoles.JobSeeker));
-                }
-                if (await _roleManager.RoleExistsAsync(UserRoles.JobSeeker))
-                {
-                    await _userManager.AddToRoleAsync(user, UserRoles.JobSeeker);
-                }
-            }
-            if (model.Role.ToLower() == "employer")
-            {
-                if (!await _roleManager.RoleExistsAsync(UserRoles.Employer))
-                {
-                    await _roleManager.CreateAsync(new IdentityRole(UserRoles.Employer));
-                }
-                if (await _roleManager.RoleExistsAsync(UserRoles.Employer))
-                {
-                    await _userManager.AddToRoleAsync(user, UserRoles.Employer);
-                }
-            }
-            return new Response { Status = "Success", Message = "User Created Successfully" };
+        public async Task<Response> RegisterJobSeekerAsync(RegisterJobSeekerDTO regJobSeeker)
+        {
+            var jobSeekerToRegister = _mapper.Map<JobSeeker>(regJobSeeker);
+            var result = await _jobSeekerServices.CreateJobSeekerAsync(jobSeekerToRegister);
+            return result;
         }
     }
 }

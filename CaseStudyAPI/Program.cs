@@ -1,13 +1,12 @@
-using CaseStudyAPI.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using CaseStudyAPI.Data;
-using CaseStudyAPI.Repository;
 using System.Security.Claims;
+using CaseStudyAPI.Mapping;
+using CaseStudyAPI.Repository;
 namespace CaseStudyAPI
 {
     public class Program
@@ -20,9 +19,9 @@ namespace CaseStudyAPI
             builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(
                    builder.Configuration.GetConnectionString("defaultConnection")));
             // For Identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                  .AddEntityFrameworkStores<ApplicationDBContext>()
-                  .AddDefaultTokenProviders();
+            //builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+            //      .AddEntityFrameworkStores<ApplicationDBContext>()
+            //      .AddDefaultTokenProviders();
 
             // Adding Authentication
             builder.Services.AddAuthentication(options =>
@@ -48,8 +47,13 @@ namespace CaseStudyAPI
                 };
             });
             builder.Services.AddControllers();
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddScoped<IUserServices, UserServices>();
-            builder.Services.AddScoped<IFileServices, FileServices>();
+            builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
+            builder.Services.AddScoped<IJobSeekerServices, JobSeekerServices>();
+            builder.Services.AddScoped<IEmployerServices, EmployerServices>();
+            builder.Services.AddScoped<IResumeServices, ResumeServices>();
+            builder.Services.AddScoped<IJobListingServices, JobListingServices>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddLogging();

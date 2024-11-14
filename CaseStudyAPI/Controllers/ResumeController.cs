@@ -1,23 +1,19 @@
-﻿using CaseStudyAPI.Authentication;
-using CaseStudyAPI.Repository;
+﻿using CaseStudyAPI.Repository;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace CaseStudyAPI.Controller
+namespace CaseStudyAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FileController : ControllerBase
+    public class ResumeController:ControllerBase
     {
-        private readonly IFileServices _fileService;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IResumeServices _resumeServices;
 
-        public FileController(IFileServices fileService, UserManager<ApplicationUser> userManager)
+        public ResumeController(IResumeServices resumeServices)
         {
-            _fileService = fileService;
-            _userManager = userManager;
+            _resumeServices = resumeServices;
         }
 
         [Authorize(Roles = "JobSeeker")]
@@ -27,12 +23,12 @@ namespace CaseStudyAPI.Controller
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
-                return BadRequest("UserID not found");
+                return BadRequest("JobSeekerId not found");
             }
             try
             {
-                var fileName = await _fileService.AddFile(userId, file);
-                return Ok($"Uploaded File {new { FileName = fileName }}");
+                var response = await _resumeServices.CreateResumeAsync(userId, file);
+                return Ok(response);
             }
             catch (InvalidOperationException ex)
             {
@@ -45,10 +41,10 @@ namespace CaseStudyAPI.Controller
         }
 
         [Authorize(Roles = "Employer")]
-        [HttpGet("download/{jobSeekerId}/{fileId}")]
-        public async Task<IActionResult> DownloadFile(string jobSeekerId,int fileId)
+        [HttpGet("download/{jobSeekerId}/{resumeId}")]
+        public async Task<IActionResult> DownloadFile(string jobSeekerId,string resumeId)
         {
-            var file = await _fileService.GetFile(fileId, jobSeekerId);
+            var file = await _resumeServices.GetResumeAsync(resumeId, jobSeekerId);
             if (file == null)
             {
                 return NotFound("File not found");
@@ -56,15 +52,15 @@ namespace CaseStudyAPI.Controller
             return File(file.FileData, file.FileType, file.FileName);
         }
         [Authorize(Roles = "JobSeeker")]
-        [HttpDelete("delete/{fileID}")]
-        public async Task<IActionResult> DeleteFile(int fileID)
+        [HttpDelete("delete/{resumeId}")]
+        public async Task<IActionResult> DeleteFile(string resumeId)
         {
             var userID = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userID == null)
             {
-                return NotFound("User Not Found");
+                return NotFound("JobSeeker Not Found");
             }
-            var status = await _fileService.DeleteFile(fileID, userID);
+            var status = await _resumeServices.DeleteResumeAsync(resumeId, userID);
             if (status)
             {
                 return Ok("File Deleted Successfully");
@@ -76,9 +72,8 @@ namespace CaseStudyAPI.Controller
         }
 
         [Authorize(Roles = "JobSeeker")]
-        [HttpPut("update/{fileId}")]
-        public async Task<IActionResult> UpdateFile(int fileId, IFormFile newFile)
-        {
+        [HttpPut("update/{resumeId}")]
+        public async Task<IActionResult> UpdateFile(string resumeId, IFormFile newFile) {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
@@ -86,8 +81,8 @@ namespace CaseStudyAPI.Controller
             }
             try
             {
-                var updatedFileName = await _fileService.UpdateFile(fileId, userId, newFile);
-                return Ok($"Updated file to {new { FileName = updatedFileName }}");
+                var updatedFileName = await _resumeServices.UpdateResumeAsync(resumeId, userId, newFile);
+                return Ok($"Updated file to {newFile.FileName}");
             }
             catch (InvalidOperationException ex)
             {

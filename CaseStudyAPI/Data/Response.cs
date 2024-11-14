@@ -1,4 +1,4 @@
-﻿namespace CaseStudyAPI.Authentication
+﻿namespace CaseStudyAPI.Data
 {
     public class Response
     {

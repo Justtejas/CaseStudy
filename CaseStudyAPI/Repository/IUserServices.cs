@@ -1,10 +1,12 @@
-﻿using CaseStudyAPI.Authentication;
+﻿using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
 
 namespace CaseStudyAPI.Repository
 {
     public interface IUserServices
     {
-        public Task<TokenResponse?> Login(LoginModel model);
-        public Task<Response> Register(RegisterModel model);
+        public Task<Response> RegisterEmployerAsync(RegisterEmployerDTO regEmployer);
+        public Task<Response> RegisterJobSeekerAsync(RegisterJobSeekerDTO regJobSeeker);
+        public Task<TokenResponse?> LoginAsync<T>(T login);
     }
 }
