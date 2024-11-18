@@ -24,6 +24,10 @@ namespace CaseStudyAPI.Repository.Services
                 {
                     return new Response { Status = "Failure", Message = "An employer with this username or email already exists." };
                 }
+                if(employer.Role != null)
+                {
+                    return new Response { Status = "Failure", Message = "Invalid Request Body"};
+                }
                 employer.Password = await _authorizationServices.HashPasswordAsync(employer.Password);
                 employer.EmployerId = Guid.NewGuid().ToString();
                 await _appDBContext.Employers.AddAsync(employer);

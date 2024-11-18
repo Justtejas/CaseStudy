@@ -18,10 +18,10 @@ namespace CaseStudyAPI.Repository.Services
             {
 
                 application.ApplicationId = Guid.NewGuid().ToString();
-                application.ApplicationDate = DateTime.UtcNow;
-                await _appDBContext.Applications.AddAsync(application);
+                application.ApplicationDate = DateTime.Now;
+                var createdApplication = await _appDBContext.Applications.AddAsync(application);
                 await _appDBContext.SaveChangesAsync();
-                return application;
+                return createdApplication.Entity;
             }
             catch (Exception ex)
             {
@@ -30,11 +30,11 @@ namespace CaseStudyAPI.Repository.Services
             }
         }
 
-        public async Task<bool> DeleteApplicationAsync(string id, string jobSeekerId)
+        public async Task<bool> DeleteApplicationAsync(string applicationId, string jobSeekerId)
         {
             try
             {
-                 var application = await _appDBContext.Applications.FindAsync(id);
+                 var application = await _appDBContext.Applications.FindAsync(applicationId);
                 if (application == null)
                 {
                     return false;

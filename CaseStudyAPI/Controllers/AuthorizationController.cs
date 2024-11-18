@@ -70,12 +70,20 @@ namespace CaseStudyAPI.Controllers
             var createdUser = await _userServices.RegisterJobSeekerAsync(registrationData);
             if (createdUser != null)
             {
-                return Ok(new
+                if(createdUser.Status == "Success")
                 {
-                    success = true,
-                    message = "JobSeeker registered successfully.",
-                    data = createdUser
-                });
+                    return Ok(new
+                    {
+                        data = createdUser
+                    });
+                }
+                else
+                {
+                    return BadRequest(new
+                    {
+                        data = createdUser
+                    });
+                }
             }
             else
             {

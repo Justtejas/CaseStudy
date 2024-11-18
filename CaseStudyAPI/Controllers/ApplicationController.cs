@@ -30,7 +30,7 @@ namespace CaseStudyAPI.Controllers
                     return NotFound(new
                     {
                         success = false,
-                        message = "No data found"
+                        message = "No applications found"
                     });
                 }
 
@@ -48,7 +48,7 @@ namespace CaseStudyAPI.Controllers
 
         [Authorize(Roles = "Employer,JobSeeker")]
         [HttpGet]
-        [Route("GetApplicationById/{id}")]
+        [Route("GetApplicationById/{applicationId}")]
         public async Task<ActionResult<Application>> GetApplicationByIdAsync(string applicationId)
         {
             try
@@ -59,7 +59,7 @@ namespace CaseStudyAPI.Controllers
                     return NotFound(new
                     {
                         success = false,
-                        message = $"The 'Application' with Id: {applicationId} not found"
+                        message = $"The Application with id: {applicationId} not found"
                     });
                 }
                 return Ok(new
@@ -73,14 +73,14 @@ namespace CaseStudyAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
-                    error = "An error occurred while fetching Employer."
+                    error = "An error occurred while fetching application."
                 });
             }
         }
 
         [Authorize(Roles = "JobSeeker")]
         [HttpGet]
-        [Route("GetApplicationByJSId/{id}")]
+        [Route("GetApplicationByJSId/{jobSeekerId}")]
         public async Task<ActionResult<Application>> GetApplicationByJSIdAsync(string jobSeekerId)
         {
             try
@@ -92,7 +92,7 @@ namespace CaseStudyAPI.Controllers
                     return NotFound(new
                     {
                         success = false,
-                        message = $"The 'Application' with Id: {jobSeekerId} not found"
+                        message = $"The Application with id: {jobSeekerId} not found"
                     });
                 }
                 return Ok(new
@@ -113,7 +113,7 @@ namespace CaseStudyAPI.Controllers
 
         [Authorize(Roles = "Employer")]
         [HttpGet]
-        [Route("GetApplicationByEmployerId/{id}")]
+        [Route("GetApplicationByEmployerId/{employerId}")]
         public async Task<ActionResult<Application>> GetApplicationByEmployerIDAsync(string employerId)
         {
             try
@@ -124,7 +124,7 @@ namespace CaseStudyAPI.Controllers
                     return NotFound(new
                     {
                         success = false,
-                        message = $"The 'Application' with Id: {employerId} not found"
+                        message = $"The Application with id: {employerId} not found"
                     });
                 }
                 else if(application== null)
@@ -132,7 +132,7 @@ namespace CaseStudyAPI.Controllers
                     return NotFound(new
                     {
                         success = false,
-                        message = $"The 'Application' with Id: {employerId} not found"
+                        message = $"The Application with id: {employerId} not found"
                     });
                 }
                 else
@@ -157,7 +157,7 @@ namespace CaseStudyAPI.Controllers
 
         [Authorize(Roles = "Employer,JobSeeker")]
         [HttpGet]
-        [Route("GetApplicationByListingId/{id}")]
+        [Route("GetApplicationByListingId/{jobListingId}")]
         public async Task<ActionResult<Application>> GetApplicationByJobListingIdAsync(string jobListingId)
         {
             try
@@ -168,7 +168,7 @@ namespace CaseStudyAPI.Controllers
                     return NotFound(new
                     {
                         success = false,
-                        message = $"The 'Application' with Id: {jobListingId} not found"
+                        message = $"The Application with id: {jobListingId} not found"
                     });
                 }
                 return Ok(new
@@ -190,27 +190,25 @@ namespace CaseStudyAPI.Controllers
         [Authorize(Roles = "JobSeeker")]
         [HttpPost]
         [Route("CreateApplication")]
-        public async Task<ActionResult<Application>> CreateApplicationAsync([FromBody] Application model)
+        public async Task<ActionResult<Application>> CreateApplicationAsync([FromBody] Application applicationModel)
         {
             try
             {
-                if (model == null)
+                if (applicationModel == null)
                 {
                     return BadRequest(new
                     {
                         success = false,
-                        message = "Null Object"
+                        message = "Invalid Request Body"
                     });
                 }
-                model.ApplicationId = Guid.NewGuid().ToString();
-                model.ApplicationDate = DateTime.Now;
-                model.JobSeekerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var application = await _applicationServices.GetApplicationByJSIdAsync(model.JobSeekerId);
-                if (application != null && application.Any(a => a.JobListingId == model.JobListingId))
+                applicationModel.JobSeekerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var application = await _applicationServices.GetApplicationByJSIdAsync(applicationModel.JobSeekerId);
+                if (application != null && application.Any(a => a.JobListingId == applicationModel.JobListingId))
                 {
                     return StatusCode(400, "You have already applied to the Job");
                 }
-                var createdApplication = await _applicationServices.CreateApplicationAsync(model);
+                var createdApplication = await _applicationServices.CreateApplicationAsync(applicationModel);
                 return Ok(new
                 {
                     success = true,
@@ -230,17 +228,17 @@ namespace CaseStudyAPI.Controllers
         [Authorize(Roles = "Employer,JobSeeker")]
         [HttpPut]
         [Route("UpdateApplication")]
-        public async Task<ActionResult<bool>> UpdateApplicationAsync([FromBody] Application model)
+        public async Task<ActionResult<bool>> UpdateApplicationAsync([FromBody] Application applicationModel)
         {
             try
             {
-                var application = await _applicationServices.UpdateApplicationAsync(model);
+                var application = await _applicationServices.UpdateApplicationAsync(applicationModel);
                 if (application == false)
                 {
-                    return BadRequest(new
+                    return NotFound(new
                     {
                         success = false,
-                        message = $"Application not found with given Id: {model.ApplicationId} "
+                        message = $"Application not found with given id: {applicationModel.ApplicationId} "
                     });
                 }
                 else
@@ -265,7 +263,7 @@ namespace CaseStudyAPI.Controllers
 
         [Authorize(Roles = "JobSeeker")]
         [HttpDelete]
-        [Route("DeleteApplication/{id}")]
+        [Route("DeleteApplication/{applicationId}")]
         public async Task<ActionResult<bool>> DeleteApplicationAsync(string applicationId)
         {
             try

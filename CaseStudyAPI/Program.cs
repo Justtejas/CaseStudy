@@ -16,15 +16,8 @@ namespace CaseStudyAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(
                    builder.Configuration.GetConnectionString("defaultConnection")));
-            // For Identity
-            //builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-            //      .AddEntityFrameworkStores<ApplicationDBContext>()
-            //      .AddDefaultTokenProviders();
-
-            // Adding Authentication
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -32,7 +25,6 @@ namespace CaseStudyAPI
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
 
-            // Adding Jwt Bearer
             .AddJwtBearer(options =>
             {
                 options.SaveToken = true;
@@ -55,7 +47,7 @@ namespace CaseStudyAPI
             builder.Services.AddScoped<IEmployerServices, EmployerServices>();
             builder.Services.AddScoped<IResumeServices, ResumeServices>();
             builder.Services.AddScoped<IJobListingServices, JobListingServices>();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddScoped<IApplicationServices, ApplicationServices>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddLogging();
             builder.Services.AddSwaggerGen(c =>
@@ -88,7 +80,6 @@ namespace CaseStudyAPI
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
