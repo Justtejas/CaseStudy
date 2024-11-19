@@ -1,4 +1,5 @@
-﻿using CaseStudyAPI.Models;
+﻿using CaseStudyAPI.DTO;
+using CaseStudyAPI.Models;
 
 namespace CaseStudyAPI.Repository.Interfaces
 {
@@ -9,8 +10,8 @@ namespace CaseStudyAPI.Repository.Interfaces
         public Task<List<Application>> GetApplicationByJSIdAsync(string jobSeekerId);
         public Task<List<Application>> GetApplicationByJobListingIdAsync(string jobListingId);
         public Task<IEnumerable<Application>> GetApplicationByEmployerIDAsync(string employerId);
-        public Task<Application> CreateApplicationAsync(Application application);
-        public Task<bool> UpdateApplicationAsync(Application application);
+        public Task<Application> CreateApplicationAsync(ApplicationDTO applicationDTO,string jobSeekerId);
+        public Task<bool> UpdateApplicationAsync(string applicationId, string applicationStatus);
         public Task<bool> DeleteApplicationAsync(string applicationId, string jobSeekerId);
     }
 }

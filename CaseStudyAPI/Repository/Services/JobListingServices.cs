@@ -1,4 +1,6 @@
-﻿using CaseStudyAPI.Data;
+﻿using AutoMapper;
+using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -9,21 +11,23 @@ namespace CaseStudyAPI.Repository.Services
     {
 
         private readonly ApplicationDBContext _appDBContext;
-        public JobListingServices(ApplicationDBContext appDBContext)
+        private readonly IMapper _mapper;
+        public JobListingServices(ApplicationDBContext appDBContext, IMapper mapper)
         {
             _appDBContext = appDBContext;
+            _mapper = mapper;
         }
-        public async Task<JobListing> CreateJobListingAsync(JobListing jobListing)
+        public async Task<JobListing> CreateJobListingAsync(JobListingDTO jobListingDTO, string employerId)
         {
             try
             {
+                var jobListing = _mapper.Map<JobListing>(jobListingDTO);
                 jobListing.JobListingId = Guid.NewGuid().ToString();
+                jobListing.EmployerId = employerId;
                 jobListing.PostedDate = DateTime.Now;
-
-                await _appDBContext.JobListings.AddAsync(jobListing);
+                var jobListingCreated = await _appDBContext.JobListings.AddAsync(jobListing);
                 await _appDBContext.SaveChangesAsync();
-
-                return jobListing;
+                return jobListingCreated.Entity;
             }
             catch (Exception ex)
             {
@@ -54,18 +58,24 @@ namespace CaseStudyAPI.Repository.Services
 
         public async Task<List<JobListing>> GetAllJobListingsAsync()
         {
-            return await _appDBContext.JobListings.ToListAsync();
+            return await _appDBContext.JobListings.Include(e => e.Employer).Include(a => a.Applications).ToListAsync();
+        }
+
+        public async Task<List<JobListing>> GetJobListingByAvailability(bool vacancy)
+        {
+            var availbleJobListings = await _appDBContext.JobListings.Include(e => e.Employer).Include(a => a.Applications).Where(j => j.VacancyOfJob == vacancy).ToListAsync();
+            return availbleJobListings;
         }
 
         public async Task<List<JobListing>> GetJobListingByEmployerIdAsync(string employerId)
         {
-            return await _appDBContext.JobListings
+            return await _appDBContext.JobListings.Include(e => e.Employer).Include(a => a.Applications)
            .Where(j => j.EmployerId == employerId).ToListAsync();
         }
 
         public async Task<JobListing> GetJobListingByIdAsync(string jobListingId)
         {
-            var jobListing = await _appDBContext.JobListings.FirstOrDefaultAsync(j => j.JobListingId == jobListingId);
+            var jobListing = await _appDBContext.JobListings.Include(e => e.Employer).Include(a => a.Applications).FirstOrDefaultAsync(j => j.JobListingId == jobListingId);
             if (jobListing == null)
             {
                 return null;

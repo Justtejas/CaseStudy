@@ -1,4 +1,5 @@
 ﻿using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +13,22 @@ namespace CaseStudyAPI.Repository.Services
             _appDBContext = appDBContext;
         }
 
-        public async Task<Application> CreateApplicationAsync(Application application)
+        public async Task<Application> CreateApplicationAsync(ApplicationDTO applicationDTO,string jobSeekerId)
         {
             try
             {
+                var application = new Application
+                {
+                    ApplicationId = Guid.NewGuid().ToString(),
+                    JobListingId = applicationDTO.JobListingId,
+                    ApplicationStatus = "Pending",
+                    JobSeekerId = jobSeekerId,
+                    ApplicationDate = DateTime.Now,
+                };
 
-                application.ApplicationId = Guid.NewGuid().ToString();
-                application.ApplicationDate = DateTime.Now;
                 var createdApplication = await _appDBContext.Applications.AddAsync(application);
                 await _appDBContext.SaveChangesAsync();
+
                 return createdApplication.Entity;
             }
             catch (Exception ex)
@@ -122,18 +130,17 @@ namespace CaseStudyAPI.Repository.Services
             }
         }
 
-        public async Task<bool> UpdateApplicationAsync(Application application)
+        public async Task<bool> UpdateApplicationAsync(string applicationId, string applicationStatus)
         {
             try
             {
-                var existingApplication = await _appDBContext.Applications.FirstOrDefaultAsync(a => a.ApplicationId == application.ApplicationId);
+                var existingApplication = await _appDBContext.Applications.FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
 
                 if (existingApplication == null)
                 {
                     return false;
                 }
-                existingApplication.ApplicationStatus = application.ApplicationStatus;
-                existingApplication.ApplicationDate = DateTime.Now;
+                existingApplication.ApplicationStatus = applicationStatus;
                 await _appDBContext.SaveChangesAsync();
                 return true;
             }

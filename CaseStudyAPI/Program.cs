@@ -8,6 +8,7 @@ using System.Security.Claims;
 using CaseStudyAPI.Mapping;
 using CaseStudyAPI.Repository.Services;
 using CaseStudyAPI.Repository.Interfaces;
+using System.Text.Json.Serialization;
 namespace CaseStudyAPI
 {
     public class Program
@@ -40,6 +41,8 @@ namespace CaseStudyAPI
                 };
             });
             builder.Services.AddControllers();
+            builder.Services.AddControllers().AddJsonOptions(x =>
+           x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddScoped<IUserServices, UserServices>();
             builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();

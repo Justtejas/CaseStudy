@@ -1,4 +1,6 @@
-﻿using CaseStudyAPI.Models;
+﻿using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
+using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,35 +21,28 @@ namespace CaseStudyAPI.Controllers
         [Authorize(Roles = "Employer,JobSeeker")]
         [HttpGet]
         [Route("GetAllJobListings")]
-        public async Task<ActionResult<List<JobListing>>> GetAllJobListingsAsync()
+        public async Task<IActionResult> GetAllJobListingsAsync()
         {
             try
             {
                 var jobListings = await _jobListingServices.GetAllJobListingsAsync();
                 if (jobListings == null || jobListings.Count <= 0)
                 {
-                    return NotFound(new
-                    {
-                        success = false,
-                        message = "No data found"
-                    });
+                    return NotFound(new ApiResponse<List<JobListing>> { Success = false, Message = "No data found" });
                 }
-                return Ok(jobListings);
+                return Ok(new ApiResponse<List<JobListing>> { Success = true, Data = jobListings });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    success = false,
-                    error = "An error occurred while fetching Job Listings."
-                });
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while fetching Job Listings." });
             }
         }
 
         [Authorize(Roles = "Employer,JobSeeker")]
         [HttpGet]
         [Route("GetJobListingsById/{jobListingId}")]
-        public async Task<ActionResult<JobListing>> GetJobListingsByIdAsync(string jobListingId)
+        public async Task<IActionResult> GetJobListingsByIdAsync(string jobListingId)
         {
             try
             {
@@ -55,31 +50,19 @@ namespace CaseStudyAPI.Controllers
 
                 if (jobListing == null)
                 {
-                    return NotFound(new
-                    {
-                        success = false,
-                        message = $"The 'Listing' with Id: {jobListingId} not found"
-                    });
+                    return NotFound(new ApiResponse<string> { Success = false, Message = $"The 'Job Listing' with Id: {jobListingId} not found" });
                 }
-                return Ok(new
-                {
-                    success = true,
-                    data = jobListing
-                });
+                return Ok(new ApiResponse<JobListing> { Success = true, Data = jobListing });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    success = false,
-                    error = "An error occurred while fetching Listing."
-                });
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while fetching Job Listing." });
             }
         }
         [Authorize(Roles = "Employer")]
         [HttpGet]
         [Route("GetJobListingsByEmployerId/{employerId}")]
-        public async Task<ActionResult<JobListing>> GetJobListingByEmployerIdAsync(string employerId)
+        public async Task<IActionResult> GetJobListingByEmployerIdAsync(string employerId)
         {
             try
             {
@@ -87,146 +70,112 @@ namespace CaseStudyAPI.Controllers
 
                 if (jobListings.Count == 0)
                 {
-                    return NotFound(new
-                    {
-                        success = false,
-                        message = $"The 'JobListings' with Id: {employerId} not found"
-                    });
+                    return NotFound(new ApiResponse<string> { Success = false, Message = $"The 'Job Listing' associated employer Id: {employerId} not found" });
                 }
-                return Ok(new
-                {
-                    success = true,
-                    data = jobListings
-                });
+                return Ok(new ApiResponse<List<JobListing>> { Success = true, Data = jobListings });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    success = false,
-                    error = "An error occurred while fetching JobListings."
-                });
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while fetching Job Listing." });
             }
         }
 
         [Authorize(Roles = "Employer")]
         [HttpPost]
         [Route("CreateJobListing")]
-        public async Task<ActionResult<JobListing>> CreateJobListingAsync([FromBody] JobListing jobListing)
+        public async Task<IActionResult> CreateJobListingAsync([FromBody] JobListingDTO jobListingData)
         {
-            if (!ModelState.IsValid)
+            if (jobListingData == null)
             {
                 return BadRequest(ModelState);
             }
             try
             {
-                jobListing.EmployerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var createdListing = await _jobListingServices.CreateJobListingAsync(jobListing);
-
-                if (createdListing == null)
+                var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(employerId))
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, new
-                    {
-                        success = false,
-                        error = "An error occurred while saving the job listing."
-                    });
+                    return Unauthorized(new ApiResponse<string> { Success = false, Error = "Employer is not authorized." });
                 }
 
-                return Ok(new
+                var createdListing = await _jobListingServices.CreateJobListingAsync(jobListingData,employerId);
+                if (createdListing == null)
                 {
-                    success = true,
-                    data = createdListing
-                });
+                    return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while creating the job listing." });
+                }
+
+                return Ok(new ApiResponse<JobListing> { Success = true, Data = createdListing });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    success = false,
-                    error = ex.Message
-                });
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = ex.Message });
             }
         }
 
         [Authorize(Roles = "Employer")]
         [HttpPut]
         [Route("UpdateJobListing")]
-        public async Task<ActionResult<bool>> UpdateJobListingAsync([FromBody] JobListing model)
+        public async Task<IActionResult> UpdateJobListingAsync([FromBody] JobListing model)
         {
             try
             {
                 if (model == null)
                 {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = "Invalid Data"
-                    });
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Data" });
                 }
                 model.EmployerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 var jobListing = await _jobListingServices.UpdateJobListingAsync(model);
 
-                if (jobListing == false)
+                if (!jobListing)
                 {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = $"Job Listing not found with given Id: {model.JobListingId} "
-                    });
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = $"Job Listing not found with Id: {model.JobListingId}" });
                 }
-                else
-                {
-                    return Ok(new
-                    {
-                        success = true,
-                        message = "Job Listing updated successfully"
-                    });
-                }
+                return Ok(new ApiResponse<string> { Success = true, Message = "Job Listing updated successfully" });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while updating Job Listing." });
+            }
+        }
+
+        [Authorize(Roles = "Employer")]
+        [HttpGet]
+        [Route("GetJobListingByAvailablity/{vacancy}")]
+        public async Task<IActionResult> GetJobListingByAvailability(bool vacancy)
+        {
+            try
+            {
+               var availableJobListings = await _jobListingServices.GetJobListingByAvailability(vacancy);
+                if (availableJobListings == null || !availableJobListings.Any())
                 {
-                    success = false,
-                    error = "An error occurred while updating Job Listing."
-                });
+                    return NotFound(new ApiResponse<string> { Success = false, Message = "No job listings found for the specified availability." });
+                }
+                return Ok(new ApiResponse<List<JobListing>> { Success = true, Data = availableJobListings });
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while fetching Job Listings." });
             }
         }
 
         [Authorize(Roles = "Employer")]
         [HttpDelete]
         [Route("DeleteJobListing/{jobListingId}")]
-        public async Task<ActionResult<bool>> DeleteJobListingAsync(string jobListingId)
+        public async Task<IActionResult> DeleteJobListingAsync(string jobListingId)
         {
             try
             {
                 var employerID = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var jobListing = await _jobListingServices.DeleteJobListingAsync(jobListingId, employerID);
-                if (jobListing == false)
+                if (!jobListing)
                 {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = "Invalid Job Listing Id"
-                    });
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Job Listing Id" });
                 }
-                else
-                {
-                    return Ok(new
-                    {
-                        success = true,
-                        message = "Job Listing deleted successfully"
-                    });
-                }
+                return Ok(new ApiResponse<string> { Success = true, Message = "Job Listing deleted successfully" });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    success = false,
-                    error = "An error occurred while deleting Job Listing."
-                });
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while deleting Job Listing." });
             }
         }
     }

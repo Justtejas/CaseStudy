@@ -6,14 +6,14 @@ namespace CaseStudyAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthorizationController : ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly IAuthorizationService _authorizationServices;
         private readonly IEmployerServices _employerServices;
         private readonly IJobSeekerServices _jobseekerServices;
         private readonly IUserServices _userServices;
 
-        public AuthorizationController(IAuthorizationService authorizationServices, IEmployerServices employerServices, IJobSeekerServices jobseekerServices, IUserServices userServices)
+        public AuthController(IAuthorizationService authorizationServices, IEmployerServices employerServices, IJobSeekerServices jobseekerServices, IUserServices userServices)
         {
             _authorizationServices = authorizationServices;
             _userServices = userServices;
@@ -39,7 +39,6 @@ namespace CaseStudyAPI.Controllers
                 return Ok(new
                 {
                     success = true,
-                    message = "Employer registered successfully.",
                     data = createdUser
                 });
             }
@@ -117,7 +116,7 @@ namespace CaseStudyAPI.Controllers
             if (user == null) return BadRequest("Invalid UserName or Password!");
             var match = await _authorizationServices.VerifyPasswordAsync(login.Password, user.Password);
             if (!match) return BadRequest("Invalid Email or Password!");
-            var token = _userServices.LoginAsync(user);
+            var token = await _userServices.LoginAsync(user);
             return Ok(token);
         }
     }

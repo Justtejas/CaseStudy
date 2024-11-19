@@ -32,7 +32,7 @@ namespace CaseStudyAPI.Repository.Services
                 employer.EmployerId = Guid.NewGuid().ToString();
                 await _appDBContext.Employers.AddAsync(employer);
                 await _appDBContext.SaveChangesAsync();
-                return new Response { Status = "Success", Message = "User Created Successfully" };
+                return new Response { Status = "Success", Message = "Employer Created Successfully" };
             }
             catch (Exception ex)
             {

@@ -31,33 +31,6 @@ namespace CaseStudyAPI.Repository.Services
                 {
                     return new Response { Status = "Failure", Message = "Invalid Request Body."};
                 }
-                if (jobseeker.Password.Length < 8 ||
-                    !Regex.IsMatch(jobseeker.Password, @"[A-Z]") ||
-                    !Regex.IsMatch(jobseeker.Password, @"[a-z]") ||
-                    !Regex.IsMatch(jobseeker.Password, @"\d") ||
-                    !Regex.IsMatch(jobseeker.Password, @"[\W_]"))
-                {
-                    return new Response { Status = "Failure", Message = "Invalid Password" };
-                }
-
-                if (!Regex.IsMatch(jobseeker.ContactPhone, @"^\+?[1-9]\d{1,10}$"))
-                {
-                    return new Response { Status = "Failure", Message = "Invalid contact phone number." };
-                }
-                var today = DateTime.Now;
-                if (jobseeker.DateOfBirth > today || jobseeker.DateOfBirth < new DateTime(1900, 1, 1))
-                {
-                    return new Response { Status = "Failure", Message = "Invalid Date of Birth." };
-                }
-                var age = today.Year - jobseeker.DateOfBirth.Year;
-                if(age < 18)
-                {
-                    return new Response { Status = "Failure", Message = "Age cannot be less than 18"};
-                }
-                if(jobseeker.StartDate > today || jobseeker.EndDate < jobseeker.StartDate)
-                {
-                    return new Response { Status = "Failure", Message = "Invalid StartDate or EndDate"};
-                }
                 await _appDBContext.JobSeekers.AddAsync(jobseeker);
                 await _appDBContext.SaveChangesAsync();
                 return new Response { Status = "Success", Message = "User Created Successfully." };
