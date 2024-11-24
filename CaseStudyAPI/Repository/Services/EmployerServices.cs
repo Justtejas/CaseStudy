@@ -9,10 +9,12 @@ namespace CaseStudyAPI.Repository.Services
     {
         private readonly IAuthorizationService _authorizationServices;
         private readonly ApplicationDBContext _appDBContext;
-        public EmployerServices(IAuthorizationService authServices, ApplicationDBContext appDBContext)
+        private readonly ILogger<EmployerServices> _logger;
+        public EmployerServices(IAuthorizationService authServices, ApplicationDBContext appDBContext, ILogger<EmployerServices> logger)
         {
             _authorizationServices = authServices;
             _appDBContext = appDBContext;
+            _logger = logger;
         }
 
         public async Task<Response> CreateEmployerAsync(Employer employer)
@@ -36,7 +38,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
@@ -64,7 +66,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex.Message);
                 return new Response
                 {
                     Status = "Failure",

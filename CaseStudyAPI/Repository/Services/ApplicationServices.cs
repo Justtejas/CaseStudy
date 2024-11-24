@@ -8,9 +8,12 @@ namespace CaseStudyAPI.Repository.Services
     public class ApplicationServices : IApplicationServices
     {
         private readonly ApplicationDBContext _appDBContext;
-        public ApplicationServices(ApplicationDBContext appDBContext)
+        private readonly ILogger<ApplicationServices> _logger;
+
+        public ApplicationServices(ApplicationDBContext appDBContext, ILogger<ApplicationServices> logger)
         {
             _appDBContext = appDBContext;
+            _logger = logger;
         }
 
         public async Task<Application> CreateApplicationAsync(ApplicationDTO applicationDTO,string jobSeekerId)
@@ -33,7 +36,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
@@ -55,7 +58,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex.Message);
                 return false;
             }
         }
@@ -74,7 +77,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
@@ -88,6 +91,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
@@ -101,6 +105,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
@@ -114,6 +119,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
@@ -126,6 +132,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
@@ -146,6 +153,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return false;
             }
         }

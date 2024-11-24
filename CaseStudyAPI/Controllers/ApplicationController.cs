@@ -12,9 +12,11 @@ namespace CaseStudyAPI.Controllers
     public class ApplicationController : ControllerBase
     {
         private readonly IApplicationServices _applicationServices;
-        public ApplicationController(IApplicationServices applicationServices)
+        private readonly ILogger<ApplicationController> _logger;
+        public ApplicationController(IApplicationServices applicationServices , ILogger<ApplicationController> logger)
         {
             _applicationServices = applicationServices;
+            _logger = logger;
         }
 
         [Authorize(Roles = "Employer,JobSeeker")]
@@ -39,6 +41,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
@@ -71,6 +74,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
@@ -104,6 +108,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
@@ -148,6 +153,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
@@ -180,6 +186,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
@@ -218,6 +225,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
@@ -253,6 +261,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
@@ -289,6 +298,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,

@@ -10,10 +10,12 @@ namespace CaseStudyAPI.Controllers
     public class ResumeController:ControllerBase
     {
         private readonly IResumeServices _resumeServices;
+        private readonly ILogger<ResumeController> _logger;
 
-        public ResumeController(IResumeServices resumeServices)
+        public ResumeController(IResumeServices resumeServices, ILogger<ResumeController> logger)
         {
             _resumeServices = resumeServices;
+            _logger = logger;
         }
 
         [Authorize(Roles = "JobSeeker")]
@@ -30,12 +32,14 @@ namespace CaseStudyAPI.Controllers
                 var response = await _resumeServices.CreateResumeAsync(userId, file);
                 return Ok(response);
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException ioex)
             {
-                return BadRequest(new { Error = ex.Message });
+                _logger.LogError(ioex.Message);
+                return BadRequest(new { Error = ioex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(500, new { Error = "An unexpected error occurred. Please try again later." });
             }
         }
@@ -86,6 +90,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }

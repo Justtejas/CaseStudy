@@ -41,8 +41,7 @@ namespace CaseStudyAPI
                 };
             });
             builder.Services.AddControllers();
-            builder.Services.AddControllers().AddJsonOptions(x =>
-           x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+            builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddScoped<IUserServices, UserServices>();
             builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
@@ -80,6 +79,12 @@ namespace CaseStudyAPI
         }
                 });
             });
+            builder.Services.AddCors(options => { options.AddPolicy("AllowAny", builder => {
+                    builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+                });
+            });
 
             var app = builder.Build();
 
@@ -89,7 +94,10 @@ namespace CaseStudyAPI
                 app.UseSwaggerUI();
             }
 
+
+            app.UseCors(options => options.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader());
             app.UseHttpsRedirection();
+            app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();
 

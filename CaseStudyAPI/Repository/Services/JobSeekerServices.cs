@@ -11,10 +11,12 @@ namespace CaseStudyAPI.Repository.Services
 
         private readonly IAuthorizationService _authorizationServices;
         private readonly ApplicationDBContext _appDBContext;
-        public JobSeekerServices(IAuthorizationService authServices, ApplicationDBContext appDBContext)
+        private readonly ILogger<JobSeekerServices> _logger;
+        public JobSeekerServices( IAuthorizationService authServices, ApplicationDBContext appDBContext, ILogger<JobSeekerServices> logger)
         {
             _authorizationServices = authServices;
             _appDBContext = appDBContext;
+            _logger = logger;
         }
         public async Task<Response> CreateJobSeekerAsync(JobSeeker jobseeker)
         {
@@ -37,7 +39,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex.Message);
                 return new Response { Status = "Failure", Message = "Invalid Request Body." };
             }
         }
@@ -65,7 +67,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex.Message);
                 return new Response
                 {
                     Status = "Failure",

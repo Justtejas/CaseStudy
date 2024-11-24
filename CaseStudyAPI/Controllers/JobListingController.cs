@@ -13,9 +13,11 @@ namespace CaseStudyAPI.Controllers
     public class JobListingController : ControllerBase
     {
         private readonly IJobListingServices _jobListingServices;
-        public JobListingController(IJobListingServices jobListingServices)
+        private readonly ILogger<JobListingController> _logger;
+        public JobListingController(IJobListingServices jobListingServices, ILogger<JobListingController> logger)
         {
             _jobListingServices = jobListingServices;
+            _logger = logger;
         }
 
         [Authorize(Roles = "Employer,JobSeeker")]
@@ -34,7 +36,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while fetching Job Listings." });
             }
         }
@@ -56,6 +58,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while fetching Job Listing." });
             }
         }
@@ -76,6 +79,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while fetching Job Listing." });
             }
         }
@@ -107,6 +111,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = ex.Message });
             }
         }
@@ -134,6 +139,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while updating Job Listing." });
             }
         }
@@ -152,8 +158,9 @@ namespace CaseStudyAPI.Controllers
                 }
                 return Ok(new ApiResponse<List<JobListing>> { Success = true, Data = availableJobListings });
             }
-            catch
+            catch(Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while fetching Job Listings." });
             }
         }
@@ -175,6 +182,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while deleting Job Listing." });
             }
         }

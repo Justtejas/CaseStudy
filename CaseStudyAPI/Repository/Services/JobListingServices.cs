@@ -12,10 +12,12 @@ namespace CaseStudyAPI.Repository.Services
 
         private readonly ApplicationDBContext _appDBContext;
         private readonly IMapper _mapper;
-        public JobListingServices(ApplicationDBContext appDBContext, IMapper mapper)
+        private readonly ILogger<JobListingServices> _logger;
+        public JobListingServices(ApplicationDBContext appDBContext, IMapper mapper, ILogger<JobListingServices> logger)
         {
             _appDBContext = appDBContext;
             _mapper = mapper;
+            _logger = logger;
         }
         public async Task<JobListing> CreateJobListingAsync(JobListingDTO jobListingDTO, string employerId)
         {
@@ -31,7 +33,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
@@ -52,6 +54,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return false;
             }
         }
@@ -113,6 +116,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return false;
             }
         }
