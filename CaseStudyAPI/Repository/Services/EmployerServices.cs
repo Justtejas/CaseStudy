@@ -30,7 +30,7 @@ namespace CaseStudyAPI.Repository.Services
                 {
                     return new Response { Status = "Failure", Message = "Invalid Request Body"};
                 }
-                employer.Password = await _authorizationServices.HashPasswordAsync(employer.Password);
+                employer.Password =  _authorizationServices.HashPassword(employer.Password);
                 employer.EmployerId = Guid.NewGuid().ToString();
                 await _appDBContext.Employers.AddAsync(employer);
                 await _appDBContext.SaveChangesAsync();

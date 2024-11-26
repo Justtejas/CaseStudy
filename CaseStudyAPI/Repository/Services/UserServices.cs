@@ -19,9 +19,17 @@ namespace CaseStudyAPI.Repository.Services
             _mapper = mapper;
             _jobSeekerServices = jobSeekerServices;
         }
-        public async Task<TokenResponse> LoginAsync<T>(T login)
+        public TokenResponse Login<T>(T login)
         {
-            var token = await _authorizationService.GenerateJWTTokenAsync(login);
+            var token = _authorizationService.GenerateJWTToken(login);
+            if(token == null)
+            {
+                return new TokenResponse
+                {
+                    Token = "No Token",
+                    Expiration = DateTime.Now.AddDays(-1),
+                };
+            }
             return token;
         }
 

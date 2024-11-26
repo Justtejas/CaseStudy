@@ -9,6 +9,7 @@ using CaseStudyAPI.Mapping;
 using CaseStudyAPI.Repository.Services;
 using CaseStudyAPI.Repository.Interfaces;
 using System.Text.Json.Serialization;
+using static System.Net.WebRequestMethods;
 namespace CaseStudyAPI
 {
     public class Program
@@ -40,7 +41,6 @@ namespace CaseStudyAPI
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
                 };
             });
-            builder.Services.AddControllers();
             builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddScoped<IUserServices, UserServices>();
@@ -80,9 +80,10 @@ namespace CaseStudyAPI
                 });
             });
             builder.Services.AddCors(options => { options.AddPolicy("AllowAny", builder => {
-                    builder.AllowAnyOrigin()
+                    builder.WithOrigins("http://localhost:5173")
                    .AllowAnyMethod()
-                   .AllowAnyHeader();
+                   .AllowAnyHeader()
+                   .AllowCredentials();
                 });
             });
 
@@ -94,10 +95,8 @@ namespace CaseStudyAPI
                 app.UseSwaggerUI();
             }
 
-
-            app.UseCors(options => options.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader());
             app.UseHttpsRedirection();
-            app.UseCors();
+            app.UseCors("AllowAny");
             app.UseAuthentication();
             app.UseAuthorization();
 

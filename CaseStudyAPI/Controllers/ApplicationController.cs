@@ -2,11 +2,13 @@
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace CaseStudyAPI.Controllers
 {
+    [EnableCors("AllowAny")]
     [Route("api/[controller]")]
     [ApiController]
     public class ApplicationController : ControllerBase

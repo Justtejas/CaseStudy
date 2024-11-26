@@ -22,7 +22,7 @@ namespace CaseStudyAPI.Repository.Services
             _configuration = configuration;
         }
 
-        public async Task<TokenResponse> GenerateJWTTokenAsync<T>(T user)
+        public TokenResponse GenerateJWTToken<T>(T user)
         {
             string userId = string.Empty;
             string userName = string.Empty;
@@ -51,7 +51,7 @@ namespace CaseStudyAPI.Repository.Services
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],
-                expires: DateTime.Now.AddMinutes(20),
+                expires: DateTime.Now.AddDays(10),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(_authSigningKey, SecurityAlgorithms.HmacSha256)
             );
@@ -62,7 +62,7 @@ namespace CaseStudyAPI.Repository.Services
             };
         }
 
-        public async Task<string> HashPasswordAsync(string password)
+        public string HashPassword(string password)
         {
             byte[] salt = new byte[16];
             using (var rng = RandomNumberGenerator.Create())
@@ -80,7 +80,7 @@ namespace CaseStudyAPI.Repository.Services
             return Convert.ToBase64String(hashBytes);
         }
 
-        public async Task<bool> VerifyPasswordAsync(string password, string hashedPassword)
+        public bool VerifyPassword(string password, string hashedPassword)
         {
             byte[] hashBytes = Convert.FromBase64String(hashedPassword);
 

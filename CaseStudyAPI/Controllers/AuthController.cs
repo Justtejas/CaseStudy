@@ -31,12 +31,11 @@ namespace CaseStudyAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Data" });
             }
             if (registrationData.Password != registrationData.ConfirmPassword)
             {
-                ModelState.AddModelError("Error", "Passwords do not match!");
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponse<string> { Success = false, Message = "Passwords do not Match" }); ;
             }
             var createdUser = await _userServices.RegisterEmployerAsync(registrationData);
             if (createdUser != null)
@@ -49,7 +48,6 @@ namespace CaseStudyAPI.Controllers
             }
             else
             {
-                ModelState.AddModelError("Error", "An error occuerd while creating the employer!");
                 return StatusCode(500, new
                 {
                     success = false,
@@ -63,117 +61,134 @@ namespace CaseStudyAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Data" });
             }
 
             if (registrationData.Password != registrationData.ConfirmPassword)
             {
-                ModelState.AddModelError("Error", "Passwords do not match!");
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponse<string> { Success = false, Message = "Passwords do not Match" }); ;
             }
             var createdUser = await _userServices.RegisterJobSeekerAsync(registrationData);
             if (createdUser != null)
             {
                 if(createdUser.Status == "Success")
                 {
-                    return Ok(new
-                    {
-                        data = createdUser
-                    });
+                    return Ok(createdUser.Message);
                 }
                 else
                 {
-                    return BadRequest(new
-                    {
-                        data = createdUser
-                    });
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = createdUser.Message});
                 }
             }
             else
             {
-                ModelState.AddModelError("Error", "An error occuerd while creating the jobseeker!");
-                return StatusCode(500, new
-                {
-                    success = false,
-                    ModelState
-                });
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                ApiResponse<string> { Success = false, Error = "An error occurred." });
             }
         }
         [Route("employer/login")]
         [HttpPost]
         public async Task<IActionResult> EmployerLogin([FromBody] LoginDTO login)
         {
-            if (login == null) return BadRequest(ModelState);
+            if (login == null) return BadRequest(new ApiResponse<string> {Success = false, Message = "Request Body Cannot Be Null"});
             var employer = await _employerServices.GetEmployerByUserName(login.UserName);
-            if (employer == null) return BadRequest("Invalid User Name!");
-            var match = await _authorizationServices.VerifyPasswordAsync(login.Password, employer.Password);
-            if (!match) return BadRequest("Invalid Password!");
-            var token = await _userServices.LoginAsync(employer);
+            if (employer == null) return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid User Name!" });
+            var match =  _authorizationServices.VerifyPassword(login.Password, employer.Password);
+            if (!match) return BadRequest(new ApiResponse<string> { Success = false, Message ="Invalid Password!"});
+            var token = _userServices.Login(employer);
             if(token == null) return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             try
             {
                 var cookie = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
-                    IsEssential = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = token.Expiration
+                    Secure = false,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = token.Expiration,
+                    MaxAge = TimeSpan.FromDays(10)
                 };
-                Response.Cookies.Append("authToken", token.Token, cookie);
+                Response.Cookies.Append("jwt", token.Token, cookie);
             }
             catch (Exception ex)
             {
                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             }
-            return Ok(new
+
+            var user = new
             {
-                employer = new
-                {
-                    employer.EmployerId,
-                    employer.EmployerName,
-                    employer.UserName,
-                }
-            });
+                employer.EmployerId,
+                employer.EmployerName,
+                employer.UserName,
+            };
+            return Ok(user);
         }
 
         [Route("jobseeker/login")]
         [HttpPost]
         public async Task<IActionResult> JobSeekerLogin([FromBody] LoginDTO login)
         {
-            if (login == null) return BadRequest(ModelState); ;
+            if (login == null) return BadRequest(new ApiResponse<string> { Success = false, Message = "Request Body Cannot Be Null"}); ;
             var jobSeeker = await _jobseekerServices.GetJobSeekerByUserName(login.UserName);
-            if (jobSeeker == null) return BadRequest("Invalid User Name!");
-            var match = await _authorizationServices.VerifyPasswordAsync(login.Password, jobSeeker.Password);
-            if (!match) return BadRequest("Invalid Password!");
-            var token = await _userServices.LoginAsync(jobSeeker);
+            if (jobSeeker == null) return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid User Name!" });
+            var match =  _authorizationServices.VerifyPassword(login.Password, jobSeeker.Password);
+            if (!match) return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Password!" });
+            var token =  _userServices.Login(jobSeeker);
             if(token == null) return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             try
             {
                 var cookie = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
+                    Secure = false,
                     IsEssential = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = token.Expiration
+                    SameSite = SameSiteMode.Lax,
+                    MaxAge = TimeSpan.FromDays(10)
                 };
-                Response.Cookies.Append("authToken", token.Token, cookie);
+                Response.Cookies.Append("jwt", token.Token, cookie);
             }
             catch (Exception ex)
             {
                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             }
-            return Ok(new
+            var user = new
             {
-                jobSeeker = new
+                jobSeeker.JobSeekerId,
+                jobSeeker.JobSeekerName,
+                jobSeeker.UserName,
+            };
+            return Ok(user);
+        }
+        [Route("logout")]
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            try
+            {
+                var cookie = new CookieOptions
                 {
-                    jobSeeker.JobSeekerId,
-                    jobSeeker.JobSeekerName,
-                    jobSeeker.UserName,
-                }
+                    HttpOnly = true,
+                    Secure = false,
+                    SameSite = SameSiteMode.Lax,
+                    MaxAge = TimeSpan.FromDays(0)
+                };
+                Response.Cookies.Append("jwt", "", cookie);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string>
+                {
+                    Success = false,
+                    Error = "An error occurred while logging out."
+                });
+            }
+
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Data = "Successfully logged out."
             });
         }
     }

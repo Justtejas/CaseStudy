@@ -7,6 +7,6 @@ namespace CaseStudyAPI.Repository.Interfaces
     {
         public Task<Response> RegisterEmployerAsync(RegisterEmployerDTO regEmployer);
         public Task<Response> RegisterJobSeekerAsync(RegisterJobSeekerDTO regJobSeeker);
-        public Task<TokenResponse?> LoginAsync<T>(T login);
+        public TokenResponse Login<T>(T login);
     }
 }

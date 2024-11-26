@@ -2,7 +2,6 @@
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 
 namespace CaseStudyAPI.Repository.Services
 {
@@ -22,7 +21,7 @@ namespace CaseStudyAPI.Repository.Services
         {
             try
             {
-                jobseeker.Password = await _authorizationServices.HashPasswordAsync(jobseeker.Password);
+                jobseeker.Password =  _authorizationServices.HashPassword(jobseeker.Password);
                 jobseeker.JobSeekerId = Guid.NewGuid().ToString();
                 var jobSeekerExists = await _appDBContext.JobSeekers.FirstOrDefaultAsync(j => j.UserName == jobseeker.UserName || j.Email == jobseeker.Email);
                 if (jobSeekerExists != null)
