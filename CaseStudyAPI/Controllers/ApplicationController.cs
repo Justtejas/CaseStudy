@@ -1,5 +1,4 @@
 ﻿using CaseStudyAPI.DTO;
-using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;

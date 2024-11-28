@@ -54,7 +54,7 @@ namespace CaseStudyAPI.Controllers
 
                 if (jobListing == null)
                 {
-                    return NotFound(new ApiResponse<string> { Success = false, Message = $"The 'Job Listing' with Id: {jobListingId} not found" });
+                    return NotFound(new ApiResponse<string> { Success = false, Message = "The Job Listing does not exist." });
                 }
                 return Ok(new ApiResponse<JobListing> { Success = true, Data = jobListing });
             }
@@ -75,7 +75,7 @@ namespace CaseStudyAPI.Controllers
 
                 if (jobListings.Count == 0)
                 {
-                    return NotFound(new ApiResponse<string> { Success = false, Message = $"The 'Job Listing' associated employer Id: {employerId} not found" });
+                    return NotFound(new ApiResponse<string> { Success = false, Message = $"The Job Listing does not exist." });
                 }
                 return Ok(new ApiResponse<List<JobListing>> { Success = true, Data = jobListings });
             }
@@ -120,8 +120,8 @@ namespace CaseStudyAPI.Controllers
 
         [Authorize(Roles = "Employer")]
         [HttpPut]
-        [Route("UpdateJobListing")]
-        public async Task<IActionResult> UpdateJobListingAsync([FromBody] JobListing model)
+        [Route("UpdateJobListing/{jobListingId}")]
+        public async Task<IActionResult> UpdateJobListingAsync(string jobListingId, [FromBody] JobListingDTO model)
         {
             try
             {
@@ -129,13 +129,13 @@ namespace CaseStudyAPI.Controllers
                 {
                     return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Data" });
                 }
-                model.EmployerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                var jobListing = await _jobListingServices.UpdateJobListingAsync(model);
+                var jobListing = await _jobListingServices.UpdateJobListingAsync(jobListingId,employerId,model);
 
                 if (!jobListing)
                 {
-                    return BadRequest(new ApiResponse<string> { Success = false, Message = $"Job Listing not found with Id: {model.JobListingId}" });
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = $"Job Listing does not exist." });
                 }
                 return Ok(new ApiResponse<string> { Success = true, Message = "Job Listing updated successfully" });
             }

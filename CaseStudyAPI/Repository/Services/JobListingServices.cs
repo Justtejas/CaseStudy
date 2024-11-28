@@ -86,30 +86,31 @@ namespace CaseStudyAPI.Repository.Services
             return jobListing;
         }
 
-        public async Task<bool> UpdateJobListingAsync(JobListing jobListing)
+        public async Task<bool> UpdateJobListingAsync(string jobListingId, string employerId, JobListingDTO jobListingDTO)
         {
             try
             {
                 var existingJobListing = await _appDBContext.JobListings
-                    .FirstOrDefaultAsync(j => j.JobListingId == jobListing.JobListingId && j.EmployerId == jobListing.EmployerId) ??  throw new InvalidOperationException("Job Listing not found or you do not have permission to update it.");;
+                    .FirstOrDefaultAsync(j => j.JobListingId ==
+                    jobListingId && j.EmployerId == employerId) ?? throw new
+                    InvalidOperationException("Job Listing not found or you do not have permission to update it.");;
 
                 if (existingJobListing == null)
                 {
                     return false;
                 }
 
-                existingJobListing.JobTitle = jobListing.JobTitle;
-                existingJobListing.JobDescription = jobListing.JobDescription;
-                existingJobListing.CompanyName = jobListing.CompanyName;
-                existingJobListing.HiringWorkflow = jobListing.HiringWorkflow;
-                existingJobListing.EligibilityCriteria = jobListing.EligibilityCriteria;
-                existingJobListing.RequiredSkills = jobListing.RequiredSkills;
-                existingJobListing.AboutCompany = jobListing.AboutCompany;
-                existingJobListing.Location = jobListing.Location;
-                existingJobListing.Salary = jobListing.Salary;
-                existingJobListing.PostedDate = jobListing.PostedDate;
-                existingJobListing.Deadline = jobListing.Deadline;
-                existingJobListing.VacancyOfJob = jobListing.VacancyOfJob;
+                existingJobListing.JobTitle = jobListingDTO.JobTitle;
+                existingJobListing.JobDescription = jobListingDTO.JobDescription;
+                existingJobListing.CompanyName = jobListingDTO.CompanyName;
+                existingJobListing.HiringWorkflow = jobListingDTO.HiringWorkflow;
+                existingJobListing.EligibilityCriteria = jobListingDTO.EligibilityCriteria;
+                existingJobListing.RequiredSkills = jobListingDTO.RequiredSkills;
+                existingJobListing.AboutCompany = jobListingDTO.AboutCompany;
+                existingJobListing.Location = jobListingDTO.Location;
+                existingJobListing.Salary = jobListingDTO.Salary;
+                existingJobListing.Deadline = jobListingDTO.Deadline;
+                existingJobListing.VacancyOfJob = jobListingDTO.VacancyOfJob;
 
                 await _appDBContext.SaveChangesAsync();
                 return true;

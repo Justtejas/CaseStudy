@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaseStudyAPI", "CaseStudyAPI.csproj", "{8161A918-D544-45D5-8FCE-0FE33FC7A0CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaseStudyAPI", "CaseStudyAPI.csproj", "{8161A918-D544-45D5-8FCE-0FE33FC7A0CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaseStudyTest", "..\CaseStudyTest\CaseStudyTest.csproj", "{0D7FE8D0-61F0-4D18-AA48-A6C87C2E6097}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{8161A918-D544-45D5-8FCE-0FE33FC7A0CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8161A918-D544-45D5-8FCE-0FE33FC7A0CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8161A918-D544-45D5-8FCE-0FE33FC7A0CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D7FE8D0-61F0-4D18-AA48-A6C87C2E6097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D7FE8D0-61F0-4D18-AA48-A6C87C2E6097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D7FE8D0-61F0-4D18-AA48-A6C87C2E6097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D7FE8D0-61F0-4D18-AA48-A6C87C2E6097}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

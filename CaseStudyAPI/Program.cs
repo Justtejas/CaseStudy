@@ -26,7 +26,6 @@ namespace CaseStudyAPI
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-
             .AddJwtBearer(options =>
             {
                 options.SaveToken = true;
@@ -52,6 +51,8 @@ namespace CaseStudyAPI
             builder.Services.AddScoped<IApplicationServices, ApplicationServices>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddLogging();
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
@@ -80,7 +81,7 @@ namespace CaseStudyAPI
                 });
             });
             builder.Services.AddCors(options => { options.AddPolicy("AllowAny", builder => {
-                    builder.WithOrigins("http://localhost:5173")
+                    builder.WithOrigins("http://localhost:3000")
                    .AllowAnyMethod()
                    .AllowAnyHeader()
                    .AllowCredentials();

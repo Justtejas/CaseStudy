@@ -75,7 +75,18 @@ namespace CaseStudyAPI.Repository.Services
             }
         }
 
-        public async Task<JobSeeker> GetJobSeekerByUserName(string userName)
+        public async Task<List<JobSeeker>> GetAllJobSeekersAsync()
+        {
+            var jobSeekers = await _appDBContext.JobSeekers.ToListAsync();
+            if (jobSeekers == null || !jobSeekers.Any())
+            {
+                return new List<JobSeeker> { };
+            }
+            return jobSeekers;
+                
+        }
+
+        public async Task<JobSeeker> GetJobSeekerByUserNameAsync(string userName)
         {
             var existingJobSeeker = await _appDBContext.JobSeekers.FirstOrDefaultAsync(j => j.UserName == userName);
             if (existingJobSeeker == null)
@@ -83,6 +94,55 @@ namespace CaseStudyAPI.Repository.Services
                 return null;
             }
             return existingJobSeeker;
+        }
+
+        public async Task<Response> UpdateJobSeekerAsync(string id, JobSeeker jobseekerModel)
+        {
+            try { 
+                var jobseeker = await _appDBContext.JobSeekers.FirstOrDefaultAsync(jobseeker => jobseeker.JobSeekerId == id);
+                if (jobseeker == null)
+                {
+                    return new Response
+                    {
+                        Status = "Success",
+                        Message = "Job Seeker not found with the given ID."
+                    };
+                }
+                jobseeker.UserName = jobseekerModel.UserName;
+                jobseeker.JobSeekerName = jobseekerModel.JobSeekerName;
+                jobseeker.Address = jobseekerModel.Address;
+                jobseeker.Gender = jobseekerModel.Gender;
+                jobseeker.DateOfBirth = jobseekerModel.DateOfBirth;
+                jobseeker.CGPA = jobseekerModel.CGPA;
+                jobseeker.ContactPhone = jobseekerModel.ContactPhone;
+                jobseeker.CompanyName = jobseekerModel.CompanyName;
+                jobseeker.Specialization = jobseekerModel.Specialization;
+                jobseeker.Institute = jobseekerModel.Institute;
+                jobseeker.Qualification = jobseekerModel.Qualification;
+                jobseeker.Description = jobseekerModel.Description;
+                jobseeker.Position = jobseekerModel.Position;
+                jobseeker.Year = jobseekerModel.Year;
+                jobseeker.StartDate = jobseekerModel.StartDate;
+                jobseeker.EndDate = jobseekerModel.EndDate;
+                jobseeker.Email = jobseekerModel.Email;
+
+                await _appDBContext.SaveChangesAsync();
+
+                return new Response
+                {
+                    Status = "Success",
+                    Message = "Job Seeker updated successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return new Response
+                {
+                    Status = "Failure",
+                    Message = $"An error occurred while updating the Job Seeker: {ex.Message}"
+                };
+            }
         }
     }
 }

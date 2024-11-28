@@ -10,7 +10,7 @@ namespace CaseStudyAPI.Repository.Interfaces
         public Task<List<JobListing>> GetJobListingByAvailability(bool vacancy);
         public Task<List<JobListing>> GetJobListingByEmployerIdAsync(string employerId);
         public Task<JobListing> CreateJobListingAsync(JobListingDTO jobListingDTO, string employerId);
-        public Task<bool> UpdateJobListingAsync(JobListing jobListing);
+        public Task<bool> UpdateJobListingAsync(string jobListingId, string employerId, JobListingDTO jobListingDTO);
         public Task<bool> DeleteJobListingAsync(string jobListingId,string employerId);
     }
 }
