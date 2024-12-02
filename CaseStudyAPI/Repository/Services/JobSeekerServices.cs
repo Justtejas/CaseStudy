@@ -38,7 +38,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex,ex.Message);
                 return new Response { Status = "Failure", Message = "Invalid Request Body." };
             }
         }

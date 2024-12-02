@@ -6,7 +6,6 @@ using System.Security.Claims;
 
 namespace CaseStudyAPI.Controllers
 {
-    [EnableCors("AllowAny")]
     [Route("api/[controller]")]
     [ApiController]
     public class ResumeController:ControllerBase
@@ -36,12 +35,12 @@ namespace CaseStudyAPI.Controllers
             }
             catch (InvalidOperationException ioex)
             {
-                _logger.LogError(ioex.Message);
+                _logger.LogError(ioex, message: ioex.Message);
                 return BadRequest(new { Error = ioex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex,$"Error uploading the file {file.FileName}");
                 return StatusCode(500, new { Error = "An unexpected error occurred. Please try again later." });
             }
         }
@@ -57,6 +56,7 @@ namespace CaseStudyAPI.Controllers
             }
             return File(file.FileData, file.FileType, file.FileName);
         }
+
         [Authorize(Roles = "JobSeeker")]
         [HttpDelete("delete/{resumeId}")]
         public async Task<IActionResult> DeleteFile(string resumeId)

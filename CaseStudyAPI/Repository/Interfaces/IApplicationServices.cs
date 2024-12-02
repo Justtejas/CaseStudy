@@ -9,7 +9,7 @@ namespace CaseStudyAPI.Repository.Interfaces
         public Task<Application> GetApplicationByIdAsync(string applicationId);
         public Task<List<Application>> GetApplicationByJSIdAsync(string jobSeekerId);
         public Task<List<Application>> GetApplicationByJobListingIdAsync(string jobListingId);
-        public Task<IEnumerable<Application>> GetApplicationByEmployerIDAsync(string employerId);
+        public Task<List<Application>> GetApplicationByEmployerIDAsync(string employerId);
         public Task<Application> CreateApplicationAsync(ApplicationDTO applicationDTO,string jobSeekerId);
         public Task<bool> UpdateApplicationAsync(string applicationId, string applicationStatus);
         public Task<bool> DeleteApplicationAsync(string applicationId, string jobSeekerId);

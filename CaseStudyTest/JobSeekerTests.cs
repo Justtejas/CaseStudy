@@ -19,25 +19,21 @@ namespace CaseStudyTest
         [SetUp]
         public void Setup()
         {
-            // Setup In-memory database for ApplicationDBContext
             var options = new DbContextOptionsBuilder<ApplicationDBContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
 
             _dbContext = new ApplicationDBContext(options);
 
-            // Initialize the mocked dependencies
             _mockAuthorizationService = new Mock<IAuthorizationService>();
             _mockLogger = new Mock<ILogger<JobSeekerServices>>();
 
-            // Initialize the service
             _jobSeekerService = new JobSeekerServices(_mockAuthorizationService.Object, _dbContext, _mockLogger.Object);
         }
 
         [Test]
         public async Task CreateJobSeekerAsync_ShouldCreateJobSeeker_WhenValidRequest()
         {
-            // Arrange
             var jobSeeker = new JobSeeker
             {
                 UserName = "johndoe123",
@@ -62,14 +58,11 @@ namespace CaseStudyTest
 
             _mockAuthorizationService.Setup(x => x.HashPassword(It.IsAny<string>())).Returns("hashedPassword");
 
-            // Act
             var response = await _jobSeekerService.CreateJobSeekerAsync(jobSeeker);
 
-            // Assert
             Assert.That(response.Status, Is.EqualTo("Success"));
             Assert.That(response.Message, Is.EqualTo("User Created Successfully."));
 
-            // Verify the job seeker was added to the database
             var savedJobSeeker = await _dbContext.JobSeekers.FirstOrDefaultAsync(j => j.UserName == jobSeeker.UserName);
             Assert.That(savedJobSeeker, Is.Not.Null);
             Assert.That(savedJobSeeker.UserName, Is.EqualTo("johndoe123"));
@@ -78,7 +71,6 @@ namespace CaseStudyTest
         [Test]
         public async Task CreateJobSeekerAsync_ShouldReturnFailure_WhenUserNameOrEmailExists()
         {
-            // Arrange
             var jobSeeker1 = new JobSeeker
             {
                 JobSeekerId = Guid.NewGuid().ToString(),
@@ -107,7 +99,7 @@ namespace CaseStudyTest
             var jobSeeker2 = new JobSeeker
             {
                 JobSeekerId = Guid.NewGuid().ToString(),
-                UserName = "johndoe123", // Same username as jobSeeker1
+                UserName = "johndoe123",
                 JobSeekerName = "Jane Doe",
                 Password = "password456",
                 Email = "janedoe@example.com",
@@ -127,10 +119,8 @@ namespace CaseStudyTest
                 EndDate = new DateTime(2024, 7, 1)
             };
 
-            // Act
             var response = await _jobSeekerService.CreateJobSeekerAsync(jobSeeker2);
 
-            // Assert
             Assert.That(response.Status, Is.EqualTo("Failure"));
             Assert.That(response.Message, Is.EqualTo("An Job Seeker with this username or email already exists."));
         }
@@ -138,7 +128,6 @@ namespace CaseStudyTest
         [Test]
         public async Task DeleteJobSeekerAsync_ShouldDeleteJobSeeker_WhenValidId()
         {
-            // Arrange
             var jobSeeker = new JobSeeker
             {
                 JobSeekerId = Guid.NewGuid().ToString(),
@@ -164,10 +153,8 @@ namespace CaseStudyTest
             await _dbContext.JobSeekers.AddAsync(jobSeeker);
             await _dbContext.SaveChangesAsync();
 
-            // Act
             var response = await _jobSeekerService.DeleteJobSeekerAsync(jobSeeker.JobSeekerId);
 
-            // Assert
             Assert.That(response.Status, Is.EqualTo("Success"));
             Assert.That(response.Message, Is.EqualTo("Job Seeker deleted successfully."));
 
@@ -178,10 +165,8 @@ namespace CaseStudyTest
         [Test]
         public async Task DeleteJobSeekerAsync_ShouldReturnFailure_WhenJobSeekerNotFound()
         {
-            // Act
             var response = await _jobSeekerService.DeleteJobSeekerAsync(Guid.NewGuid().ToString());
 
-            // Assert
             Assert.That(response.Status, Is.EqualTo("Success"));
             Assert.That(response.Message, Is.EqualTo("Job Seeker not found with the given ID."));
         }
@@ -189,7 +174,6 @@ namespace CaseStudyTest
         [Test]
         public async Task GetAllJobSeekersAsync_ShouldReturnJobSeekers()
         {
-            // Arrange
             var jobSeeker1 = new JobSeeker
             {
                 JobSeekerId = Guid.NewGuid().ToString(),
@@ -237,11 +221,9 @@ namespace CaseStudyTest
             await _dbContext.JobSeekers.AddRangeAsync(jobSeeker1, jobSeeker2);
             await _dbContext.SaveChangesAsync();
 
-            // Act
             var jobSeekers = await _jobSeekerService.GetAllJobSeekersAsync();
 
-            // Assert
-            Assert.That(jobSeekers.Count, Is.EqualTo(2));
+            Assert.That(jobSeekers, Has.Count.EqualTo(2));
             Assert.That(jobSeekers[0].UserName, Is.EqualTo("user1"));
             Assert.That(jobSeekers[1].UserName, Is.EqualTo("user2"));
         }
@@ -249,7 +231,6 @@ namespace CaseStudyTest
         [Test]
         public async Task GetJobSeekerByUserNameAsync_ShouldReturnJobSeeker_WhenExists()
         {
-            // Arrange
             var jobSeeker = new JobSeeker
             {
                 JobSeekerId = Guid.NewGuid().ToString(),
@@ -275,10 +256,8 @@ namespace CaseStudyTest
             await _dbContext.JobSeekers.AddAsync(jobSeeker);
             await _dbContext.SaveChangesAsync();
 
-            // Act
             var result = await _jobSeekerService.GetJobSeekerByUserNameAsync("testuser");
 
-            // Assert
             Assert.That(result, Is.Not.Null);
             Assert.That(result.UserName, Is.EqualTo("testuser"));
         }
@@ -286,17 +265,13 @@ namespace CaseStudyTest
         [Test]
         public async Task GetJobSeekerByUserNameAsync_ShouldReturnNull_WhenNotFound()
         {
-            // Act
             var result = await _jobSeekerService.GetJobSeekerByUserNameAsync("nonexistentuser");
-
-            // Assert
             Assert.That(result, Is.Null);
         }
 
         [Test]
         public async Task UpdateJobSeekerAsync_ShouldUpdateJobSeeker_WhenValidRequest()
         {
-            // Arrange
             var jobSeeker = new JobSeeker
             {
                 JobSeekerId = Guid.NewGuid().ToString(),
@@ -343,10 +318,8 @@ namespace CaseStudyTest
                 EndDate = new DateTime(2022, 3, 1)
             };
 
-            // Act
             var response = await _jobSeekerService.UpdateJobSeekerAsync(jobSeeker.JobSeekerId, updatedJobSeeker);
 
-            // Assert
             Assert.That(response.Status, Is.EqualTo("Success"));
             Assert.That(response.Message, Is.EqualTo("Job Seeker updated successfully."));
 
@@ -358,10 +331,8 @@ namespace CaseStudyTest
         [Test]
         public async Task UpdateJobSeekerAsync_ShouldReturnFailure_WhenJobSeekerNotFound()
         {
-            // Act
             var response = await _jobSeekerService.UpdateJobSeekerAsync(Guid.NewGuid().ToString(), new JobSeeker());
 
-            // Assert
             Assert.That(response.Status, Is.EqualTo("Success"));
             Assert.That(response.Message, Is.EqualTo("Job Seeker not found with the given ID."));
         }

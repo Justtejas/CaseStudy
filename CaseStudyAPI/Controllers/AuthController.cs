@@ -71,7 +71,7 @@ namespace CaseStudyAPI.Controllers
             {
                 if (createdUser.Status == "Success")
                 {
-                    return Ok(createdUser.Message);
+                    return Ok(new ApiResponse<string> { Success = true, Data = createdUser.Message });
                 }
                 else
                 {
@@ -110,7 +110,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Failed to set cookie during login");
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             }
 
@@ -147,7 +147,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Failed to set cookie during login");
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             }
             var user = new
@@ -158,6 +158,7 @@ namespace CaseStudyAPI.Controllers
             };
             return Ok(new { user, token.Token });
         }
+
         [Route("logout")]
         [HttpPost]
         public IActionResult Logout()
@@ -173,7 +174,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "An error occurred while logging out");
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string>
                 {
                     Success = false,

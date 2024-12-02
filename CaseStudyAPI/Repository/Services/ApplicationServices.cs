@@ -110,7 +110,7 @@ namespace CaseStudyAPI.Repository.Services
             }
         }
 
-        public async Task<IEnumerable<Application>> GetApplicationByEmployerIDAsync(string id)
+        public async Task<List<Application>> GetApplicationByEmployerIDAsync(string id)
         {
             try
             {

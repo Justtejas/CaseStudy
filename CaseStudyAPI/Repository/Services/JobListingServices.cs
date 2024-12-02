@@ -84,24 +84,24 @@ namespace CaseStudyAPI.Repository.Services
 
         public async Task<List<JobListing>> GetAllJobListingsAsync()
         {
-            return await _appDBContext.JobListings.Include(e => e.Employer).Include(a => a.Applications).ToListAsync();
+            return await _appDBContext.JobListings.ToListAsync();
         }
 
         public async Task<List<JobListing>> GetJobListingByAvailability(bool vacancy)
         {
-            var availbleJobListings = await _appDBContext.JobListings.Include(e => e.Employer).Include(a => a.Applications).Where(j => j.VacancyOfJob == vacancy).ToListAsync();
+            var availbleJobListings = await _appDBContext.JobListings.Where(j => j.VacancyOfJob == vacancy).ToListAsync();
             return availbleJobListings;
         }
 
         public async Task<List<JobListing>> GetJobListingByEmployerIdAsync(string employerId)
         {
-            return await _appDBContext.JobListings.Include(e => e.Employer).Include(a => a.Applications)
+            return await _appDBContext.JobListings
            .Where(j => j.EmployerId == employerId).ToListAsync();
         }
 
         public async Task<JobListing> GetJobListingByIdAsync(string jobListingId)
         {
-            var jobListing = await _appDBContext.JobListings.Include(e => e.Employer).Include(a => a.Applications).FirstOrDefaultAsync(j => j.JobListingId == jobListingId);
+            var jobListing = await _appDBContext.JobListings.FirstOrDefaultAsync(j => j.JobListingId == jobListingId);
             if (jobListing == null)
             {
                 return null;
