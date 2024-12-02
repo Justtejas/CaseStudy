@@ -3,13 +3,11 @@ using CaseStudyAPI.DTO;
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace CaseStudyAPI.Controllers
 {
-    [EnableCors("AllowAny")]
     [Route("api/[controller]")]
     [ApiController]
     public class JobListingController : ControllerBase
@@ -22,7 +20,7 @@ namespace CaseStudyAPI.Controllers
             _logger = logger;
         }
 
-        [Authorize(Roles = "Employer,JobSeeker")]
+        [AllowAnonymous]
         [HttpGet]
         [Route("GetAllJobListings")]
         public async Task<IActionResult> GetAllJobListingsAsync()
@@ -43,7 +41,7 @@ namespace CaseStudyAPI.Controllers
             }
         }
 
-        [Authorize(Roles = "Employer,JobSeeker")]
+        [AllowAnonymous]
         [HttpGet]
         [Route("GetJobListingsById/{jobListingId}")]
         public async Task<IActionResult> GetJobListingsByIdAsync(string jobListingId)
@@ -125,19 +123,30 @@ namespace CaseStudyAPI.Controllers
         {
             try
             {
+
+                if (string.IsNullOrWhiteSpace(jobListingId))
+                {
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = "Job Listing ID is required." });
+                }
+
                 if (model == null)
                 {
-                    return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Data" });
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Job Listing data provided." });
                 }
+
                 var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrWhiteSpace(employerId))
+                {
+                    return Unauthorized(new ApiResponse<string> { Success = false, Message = "Unauthorized access. Employer ID not found." });
+                }
 
                 var jobListing = await _jobListingServices.UpdateJobListingAsync(jobListingId,employerId,model);
-
-                if (!jobListing)
-                {
-                    return BadRequest(new ApiResponse<string> { Success = false, Message = $"Job Listing does not exist." });
-                }
                 return Ok(new ApiResponse<string> { Success = true, Message = "Job Listing updated successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Validation or business logic error occurred while updating job listing.");
+                return BadRequest(new ApiResponse<string> { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -174,17 +183,34 @@ namespace CaseStudyAPI.Controllers
         {
             try
             {
-                var employerID = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var jobListing = await _jobListingServices.DeleteJobListingAsync(jobListingId, employerID);
-                if (!jobListing)
+
+                if (string.IsNullOrWhiteSpace(jobListingId))
                 {
-                    return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Job Listing Id" });
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = "Job Listing ID is required." });
                 }
-                return Ok(new ApiResponse<string> { Success = true, Message = "Job Listing deleted successfully" });
+                var employerID = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrWhiteSpace(employerID))
+                {
+                    return Unauthorized(new ApiResponse<string> { Success = false, Message = "Unauthorized access. Employer ID not found." });
+                }
+                var resultMessage = await _jobListingServices.DeleteJobListingAsync(jobListingId, employerID);
+                if (resultMessage.Contains("successfully", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Ok(new ApiResponse<string> { Success = true, Message = resultMessage });
+                }
+                else if (resultMessage.Contains("not found", StringComparison.OrdinalIgnoreCase) ||
+                         resultMessage.Contains("permission", StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = resultMessage });
+                }
+                else
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = resultMessage });
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Unexpected error occurred while deleting job listing.");
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred while deleting Job Listing." });
             }
         }

@@ -7,7 +7,6 @@ using System.Security.Claims;
 
 namespace CaseStudyAPI.Controllers
 {
-    [EnableCors("AllowAny")]
     [Route("api/[controller]")]
     [ApiController]
     public class ApplicationController : ControllerBase

@@ -4,12 +4,10 @@ using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using CaseStudyAPI.Data;
-using System.Security.Claims;
 using CaseStudyAPI.Mapping;
 using CaseStudyAPI.Repository.Services;
 using CaseStudyAPI.Repository.Interfaces;
 using System.Text.Json.Serialization;
-using static System.Net.WebRequestMethods;
 namespace CaseStudyAPI
 {
     public class Program
@@ -25,6 +23,7 @@ namespace CaseStudyAPI
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
             })
             .AddJwtBearer(options =>
             {
@@ -34,9 +33,9 @@ namespace CaseStudyAPI
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
                     ValidAudience = builder.Configuration["JWT:Audience"],
                     ValidIssuer = builder.Configuration["JWT:Issuer"],
-                    NameClaimType = ClaimTypes.NameIdentifier,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
                 };
             });
@@ -80,13 +79,7 @@ namespace CaseStudyAPI
         }
                 });
             });
-            builder.Services.AddCors(options => { options.AddPolicy("AllowAny", builder => {
-                    builder.WithOrigins("http://localhost:3000")
-                   .AllowAnyMethod()
-                   .AllowAnyHeader()
-                   .AllowCredentials();
-                });
-            });
+            builder.Services.AddCors();
 
             var app = builder.Build();
 
@@ -97,7 +90,13 @@ namespace CaseStudyAPI
             }
 
             app.UseHttpsRedirection();
-            app.UseCors("AllowAny");
+            app.UseCors(options =>
+            {
+                options.WithOrigins("http://localhost:3000")
+                   .AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .AllowCredentials();
+            });
             app.UseAuthentication();
             app.UseAuthorization();
 

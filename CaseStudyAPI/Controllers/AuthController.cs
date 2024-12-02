@@ -1,12 +1,10 @@
 ﻿using CaseStudyAPI.Data;
 using CaseStudyAPI.DTO;
 using CaseStudyAPI.Repository.Interfaces;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CaseStudyAPI.Controllers
 {
-    [EnableCors("AllowAny")]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -71,32 +69,33 @@ namespace CaseStudyAPI.Controllers
             var createdUser = await _userServices.RegisterJobSeekerAsync(registrationData);
             if (createdUser != null)
             {
-                if(createdUser.Status == "Success")
+                if (createdUser.Status == "Success")
                 {
                     return Ok(createdUser.Message);
                 }
                 else
                 {
-                    return BadRequest(new ApiResponse<string> { Success = false, Message = createdUser.Message});
+                    return BadRequest(new ApiResponse<string> { Success = false, Message = createdUser.Message });
                 }
             }
             else
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
-                ApiResponse<string> { Success = false, Error = "An error occurred." });
+                ApiResponse<string>
+                { Success = false, Error = "An error occurred." });
             }
         }
         [Route("employer/login")]
         [HttpPost]
         public async Task<IActionResult> EmployerLogin([FromBody] LoginDTO login)
         {
-            if (login == null) return BadRequest(new ApiResponse<string> {Success = false, Message = "Request Body Cannot Be Null"});
+            if (login == null) return BadRequest(new ApiResponse<string> { Success = false, Message = "Request Body Cannot Be Null" });
             var employer = await _employerServices.GetEmployerByUserName(login.UserName);
             if (employer == null) return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid User Name!" });
-            var match =  _authorizationServices.VerifyPassword(login.Password, employer.Password);
-            if (!match) return BadRequest(new ApiResponse<string> { Success = false, Message ="Invalid Password!"});
+            var match = _authorizationServices.VerifyPassword(login.Password, employer.Password);
+            if (!match) return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Password!" });
             var token = _userServices.Login(employer);
-            if(token == null) return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
+            if (token == null) return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             try
             {
                 var cookie = new CookieOptions
@@ -111,7 +110,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
-               _logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             }
 
@@ -121,27 +120,26 @@ namespace CaseStudyAPI.Controllers
                 employer.EmployerName,
                 employer.UserName,
             };
-            return Ok(user);
+            return Ok(new { user, token.Token });
         }
 
         [Route("jobseeker/login")]
         [HttpPost]
         public async Task<IActionResult> JobSeekerLogin([FromBody] LoginDTO login)
         {
-            if (login == null) return BadRequest(new ApiResponse<string> { Success = false, Message = "Request Body Cannot Be Null"}); ;
-            var jobSeeker = await _jobseekerServices.GetJobSeekerByUserName(login.UserName);
+            if (login == null) return BadRequest(new ApiResponse<string> { Success = false, Message = "Request Body Cannot Be Null" }); ;
+            var jobSeeker = await _jobseekerServices.GetJobSeekerByUserNameAsync(login.UserName);
             if (jobSeeker == null) return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid User Name!" });
-            var match =  _authorizationServices.VerifyPassword(login.Password, jobSeeker.Password);
+            var match = _authorizationServices.VerifyPassword(login.Password, jobSeeker.Password);
             if (!match) return BadRequest(new ApiResponse<string> { Success = false, Message = "Invalid Password!" });
-            var token =  _userServices.Login(jobSeeker);
-            if(token == null) return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
+            var token = _userServices.Login(jobSeeker);
+            if (token == null) return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             try
             {
                 var cookie = new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = false,
-                    IsEssential = true,
                     SameSite = SameSiteMode.Lax,
                     MaxAge = TimeSpan.FromDays(10)
                 };
@@ -149,7 +147,7 @@ namespace CaseStudyAPI.Controllers
             }
             catch (Exception ex)
             {
-               _logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string> { Success = false, Error = "An error occurred." });
             }
             var user = new
@@ -158,7 +156,7 @@ namespace CaseStudyAPI.Controllers
                 jobSeeker.JobSeekerName,
                 jobSeeker.UserName,
             };
-            return Ok(user);
+            return Ok(new { user, token.Token });
         }
         [Route("logout")]
         [HttpPost]
@@ -166,14 +164,12 @@ namespace CaseStudyAPI.Controllers
         {
             try
             {
-                var cookie = new CookieOptions
+                Response.Cookies.Delete("jwt");
+                return Ok(new ApiResponse<string>
                 {
-                    HttpOnly = true,
-                    Secure = false,
-                    SameSite = SameSiteMode.Lax,
-                    MaxAge = TimeSpan.FromDays(0)
-                };
-                Response.Cookies.Append("jwt", "", cookie);
+                    Success = true,
+                    Data = "Successfully logged out."
+                });
             }
             catch (Exception ex)
             {
@@ -185,11 +181,6 @@ namespace CaseStudyAPI.Controllers
                 });
             }
 
-            return Ok(new ApiResponse<string>
-            {
-                Success = true,
-                Data = "Successfully logged out."
-            });
         }
     }
 }
