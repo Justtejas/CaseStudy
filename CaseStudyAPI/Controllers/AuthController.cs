@@ -119,6 +119,7 @@ namespace CaseStudyAPI.Controllers
                 employer.EmployerId,
                 employer.EmployerName,
                 employer.UserName,
+                employer.Role
             };
             return Ok(new { user, token.Token });
         }
@@ -155,6 +156,7 @@ namespace CaseStudyAPI.Controllers
                 jobSeeker.JobSeekerId,
                 jobSeeker.JobSeekerName,
                 jobSeeker.UserName,
+                jobSeeker.Role
             };
             return Ok(new { user, token.Token });
         }
