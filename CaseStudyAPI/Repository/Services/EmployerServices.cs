@@ -75,6 +75,16 @@ namespace CaseStudyAPI.Repository.Services
             }
         }
 
+        public async Task<List<Employer>> GetAllEmployersAsync()
+        {
+            var employers = await _appDBContext.Employers.ToListAsync();
+            if(employers == null)
+            {
+                return null;
+            }
+            return employers;
+        }
+
         public async Task<Employer> GetEmployerByUserName(string UserName)
         {
             var existingEmployer = await _appDBContext.Employers.FirstOrDefaultAsync(e => e.UserName == UserName);
@@ -83,6 +93,45 @@ namespace CaseStudyAPI.Repository.Services
                 return null;
             }
             return existingEmployer;
+        }
+
+          public async Task<Response> UpdateEmployerAsync(string employerId,Employer employer)
+        {
+            try
+            {
+                var employerUser = await _appDBContext.Employers.FirstOrDefaultAsync(employer => employer.EmployerId == employerId);
+                if (employerUser == null)
+                {
+                    _logger.LogError("Employer not found with given Id");
+                    return new Response
+                    {
+                        Status = "Success",
+                        Message = "Employer not found with the given ID."
+                    };
+                }
+                employerUser.EmployerName = employer.EmployerName;
+                employerUser.UserName = employer.UserName;
+                employerUser.CompanyName = employer.CompanyName;
+                employerUser.Gender = employer.Gender;
+                employerUser.ContactPhone = employer.ContactPhone;
+                employerUser.Email = employer.Email;
+
+                await _appDBContext.SaveChangesAsync();
+                return new Response
+                {
+                    Status = "Success",
+                    Message = "Employer updated successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return new Response
+                {
+                    Status = "Failure",
+                    Message = $"An error occurred while updating the Employer: {ex.Message}"
+                };
+            }
         }
     }
 }

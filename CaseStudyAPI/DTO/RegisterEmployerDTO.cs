@@ -28,7 +28,7 @@ namespace CaseStudyAPI.DTO
         [MinLength(2, ErrorMessage = "Company name must be longer than 2 characters.")]
         public string CompanyName { get; set; }
         [Required]
-        [RegularExpression(@"^\+?[1-9]\d{1,12}$", ErrorMessage = "Invalid contact phone number.")]
+        [RegularExpression(@"^\+?[1-9]\d{10,12}$", ErrorMessage = "Invalid contact phone number.")]
         public string ContactPhone { get; set; }
     }
 }

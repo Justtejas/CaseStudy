@@ -26,7 +26,7 @@ namespace CaseStudyAPI.DTO
         [RegularExpression(@"^Male$|^Female$", ErrorMessage = "Gender must be Male or Female.")]
         public string Gender { get; set; }
         [Required]
-        [RegularExpression(@"^\+?[1-9]\d{1,10}$", ErrorMessage = "Invalid contact phone number.")]
+        [RegularExpression(@"^\+?[1-9]\d{10,12}$", ErrorMessage = "Invalid contact phone number.")]
         public string ContactPhone { get; set; }
         [Required]
         public string Address { get; set; }
