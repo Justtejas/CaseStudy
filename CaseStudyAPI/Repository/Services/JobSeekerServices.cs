@@ -1,4 +1,5 @@
 ﻿using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ namespace CaseStudyAPI.Repository.Services
         private readonly IAuthorizationService _authorizationServices;
         private readonly ApplicationDBContext _appDBContext;
         private readonly ILogger<JobSeekerServices> _logger;
-        public JobSeekerServices( IAuthorizationService authServices, ApplicationDBContext appDBContext, ILogger<JobSeekerServices> logger)
+        public JobSeekerServices(IAuthorizationService authServices, ApplicationDBContext appDBContext, ILogger<JobSeekerServices> logger)
         {
             _authorizationServices = authServices;
             _appDBContext = appDBContext;
@@ -21,16 +22,16 @@ namespace CaseStudyAPI.Repository.Services
         {
             try
             {
-                jobseeker.Password =  _authorizationServices.HashPassword(jobseeker.Password);
+                jobseeker.Password = _authorizationServices.HashPassword(jobseeker.Password);
                 jobseeker.JobSeekerId = Guid.NewGuid().ToString();
                 var jobSeekerExists = await _appDBContext.JobSeekers.FirstOrDefaultAsync(j => j.UserName == jobseeker.UserName || j.Email == jobseeker.Email);
                 if (jobSeekerExists != null)
                 {
                     return new Response { Status = "Failure", Message = "An Job Seeker with this username or email already exists." };
                 }
-                if(jobseeker.Role != null)
+                if (jobseeker.Role != null)
                 {
-                    return new Response { Status = "Failure", Message = "Invalid Request Body."};
+                    return new Response { Status = "Failure", Message = "Invalid Request Body." };
                 }
                 await _appDBContext.JobSeekers.AddAsync(jobseeker);
                 await _appDBContext.SaveChangesAsync();
@@ -38,7 +39,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return new Response { Status = "Failure", Message = "Invalid Request Body." };
             }
         }
@@ -83,7 +84,17 @@ namespace CaseStudyAPI.Repository.Services
                 return new List<JobSeeker> { };
             }
             return jobSeekers;
-                
+
+        }
+
+        public async Task<JobSeeker> GetJobSeekerByJobSeekerIdAsync(string jobSeekerId)
+        {
+            var existingJobSeeker = await _appDBContext.JobSeekers.FirstOrDefaultAsync(j => j.JobSeekerId == jobSeekerId);
+            if (existingJobSeeker == null)
+            {
+                return null;
+            }
+            return existingJobSeeker;
         }
 
         public async Task<JobSeeker> GetJobSeekerByUserNameAsync(string userName)
@@ -96,35 +107,58 @@ namespace CaseStudyAPI.Repository.Services
             return existingJobSeeker;
         }
 
-        public async Task<Response> UpdateJobSeekerAsync(string id, JobSeeker jobseekerModel)
+        public async Task<Response> UpdateJobSeekerAsync(string id, UpdateJobSeekerDTO jobseekerModel)
         {
-            try { 
-                var jobseeker = await _appDBContext.JobSeekers.FirstOrDefaultAsync(jobseeker => jobseeker.JobSeekerId == id);
+            try
+            {
+                if (jobseekerModel == null)
+                {
+                    return new Response
+                    {
+                        Status = "Failure",
+                        Message = "Invalid request body."
+                    };
+                }
+
+                var jobseeker = await _appDBContext.JobSeekers.FirstOrDefaultAsync(j => j.JobSeekerId == id);
                 if (jobseeker == null)
                 {
                     return new Response
                     {
-                        Status = "Success",
+                        Status = "Failure",
                         Message = "Job Seeker not found with the given ID."
                     };
                 }
-                jobseeker.UserName = jobseekerModel.UserName;
-                jobseeker.JobSeekerName = jobseekerModel.JobSeekerName;
-                jobseeker.Address = jobseekerModel.Address;
-                jobseeker.Gender = jobseekerModel.Gender;
-                jobseeker.DateOfBirth = jobseekerModel.DateOfBirth;
-                jobseeker.CGPA = jobseekerModel.CGPA;
-                jobseeker.ContactPhone = jobseekerModel.ContactPhone;
-                jobseeker.CompanyName = jobseekerModel.CompanyName;
-                jobseeker.Specialization = jobseekerModel.Specialization;
-                jobseeker.Institute = jobseekerModel.Institute;
-                jobseeker.Qualification = jobseekerModel.Qualification;
-                jobseeker.Description = jobseekerModel.Description;
-                jobseeker.Position = jobseekerModel.Position;
-                jobseeker.Year = jobseekerModel.Year;
-                jobseeker.StartDate = jobseekerModel.StartDate;
-                jobseeker.EndDate = jobseekerModel.EndDate;
-                jobseeker.Email = jobseekerModel.Email;
+
+                var jobSeekerExists = await _appDBContext.JobSeekers
+                    .FirstOrDefaultAsync(j => (j.UserName == jobseekerModel.UserName || j.Email == jobseekerModel.Email)
+                                               && j.JobSeekerId != id);
+                if (jobSeekerExists != null)
+                {
+                    return new Response
+                    {
+                        Status = "Failure",
+                        Message = "A Job Seeker with this username or email already exists."
+                    };
+                }
+
+                if (!string.IsNullOrEmpty(jobseekerModel.UserName)) jobseeker.UserName = jobseekerModel.UserName;
+                if (!string.IsNullOrEmpty(jobseekerModel.JobSeekerName)) jobseeker.JobSeekerName = jobseekerModel.JobSeekerName;
+                if (!string.IsNullOrEmpty(jobseekerModel.Address)) jobseeker.Address = jobseekerModel.Address;
+                if (jobseekerModel.Gender != null) jobseeker.Gender = jobseekerModel.Gender;
+                if (jobseekerModel.DateOfBirth != null) jobseeker.DateOfBirth = jobseekerModel.DateOfBirth;
+                if (jobseekerModel.CGPA > 0.0m && jobseekerModel.CGPA <= 10.0m)  jobseeker.CGPA = jobseekerModel.CGPA;
+                if (!string.IsNullOrEmpty(jobseekerModel.ContactPhone)) jobseeker.ContactPhone = jobseekerModel.ContactPhone;
+                if (!string.IsNullOrEmpty(jobseekerModel.CompanyName)) jobseeker.CompanyName = jobseekerModel.CompanyName;
+                if (!string.IsNullOrEmpty(jobseekerModel.Specialization)) jobseeker.Specialization = jobseekerModel.Specialization;
+                if (!string.IsNullOrEmpty(jobseekerModel.Institute)) jobseeker.Institute = jobseekerModel.Institute;
+                if (!string.IsNullOrEmpty(jobseekerModel.Qualification)) jobseeker.Qualification = jobseekerModel.Qualification;
+                if (!string.IsNullOrEmpty(jobseekerModel.Description)) jobseeker.Description = jobseekerModel.Description;
+                if (!string.IsNullOrEmpty(jobseekerModel.Position)) jobseeker.Position = jobseekerModel.Position;
+                if (jobseekerModel.Year > 1900 && jobseekerModel.Year < 2100) jobseeker.Year = jobseekerModel.Year;
+                if (jobseekerModel.StartDate != null) jobseeker.StartDate = jobseekerModel.StartDate;
+                if (jobseekerModel.EndDate != null) jobseeker.EndDate = jobseekerModel.EndDate;
+                if (!string.IsNullOrEmpty(jobseekerModel.Email)) jobseeker.Email = jobseekerModel.Email;
 
                 await _appDBContext.SaveChangesAsync();
 
@@ -136,7 +170,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Error updating Job Seeker with ID {id}: {ex}");
                 return new Response
                 {
                     Status = "Failure",

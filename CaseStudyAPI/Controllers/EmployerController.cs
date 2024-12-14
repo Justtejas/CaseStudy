@@ -1,4 +1,5 @@
 ﻿using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -52,12 +53,12 @@ namespace CaseStudyAPI.Controllers
 
         [Authorize(Roles = "Employer")]
         [HttpGet]
-        [Route("GetEmployerByUserName/{userName}")]
-        public async Task<IActionResult> GetEmployerByUserNameAsync(string userName)
+        [Route("GetEmployerByEmployerId/{employerId}")]
+        public async Task<IActionResult> GetEmployerByEmployerIdAsync(string employerId)
         {
             try
             {
-                var employer = await _employerServices.GetEmployerByUserName(userName);
+                var employer = await _employerServices.GetEmployerByEmployerIdAsync(employerId);
 
 
                 if (employer == null)
@@ -66,7 +67,7 @@ namespace CaseStudyAPI.Controllers
                     return NotFound(new
                     {
                         success = false,
-                        message = $"The 'Employer' with username: {userName} not found"
+                        message = $"The 'Employer' with username: {employerId} not found"
                     });
                 }
 
@@ -86,7 +87,7 @@ namespace CaseStudyAPI.Controllers
         [Authorize(Roles = "Employer")]
         [HttpPut]
         [Route("UpdateEmployer/{employerId}")]
-        public async Task<ActionResult<bool>> UpdateEmployer(string employerId, [FromBody] Employer employer)
+        public async Task<IActionResult> UpdateEmployer(string employerId, [FromBody] UpdateEmployerDTO employer)
         {
             try
             {
@@ -102,7 +103,7 @@ namespace CaseStudyAPI.Controllers
 
                 var employerStatus = await _employerServices.UpdateEmployerAsync(employerId, employer);
 
-                if (employerStatus.Message == "Employer not found with the given ID.")
+                if (employerStatus.Message != "Employer updated successfully.")
                 {
                     return BadRequest(new ApiResponse<string>
                     {
@@ -112,7 +113,7 @@ namespace CaseStudyAPI.Controllers
                 }
                 else
                 {
-                    return Ok(new ApiResponse<Employer>
+                    return Ok(new ApiResponse<UpdateEmployerDTO>
                     {
                         Success = true,
                         Message = "Employer updated successfully",

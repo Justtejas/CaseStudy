@@ -205,8 +205,8 @@ namespace CaseStudyAPI.Controllers
             }
         }
 
-        [HttpPut("UpdateApplication/{applicationId}")]
-        public async Task<IActionResult> UpdateApplicationAsync(string applicationId, [FromBody] string applicationStatus)
+        [HttpPut("UpdateApplication/{applicationId}/{applicationStatus}")]
+        public async Task<IActionResult> UpdateApplicationAsync(string applicationId, string applicationStatus)
         {
             try
             {

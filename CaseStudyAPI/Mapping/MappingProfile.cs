@@ -12,6 +12,8 @@ namespace CaseStudyAPI.Mapping
             CreateMap<Employer, RegisterEmployerDTO>().ReverseMap();
             CreateMap<Application, ApplicationDTO>().ReverseMap();
             CreateMap<JobListing, JobListingDTO>().ReverseMap();
+            CreateMap<Employer, UpdateEmployerDTO>().ReverseMap();
+            CreateMap<JobSeeker, UpdateJobSeekerDTO>().ReverseMap();
         }
     }
 }

@@ -5,6 +5,7 @@ using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Microsoft.Extensions.Logging;
+using CaseStudyAPI.DTO;
 
 namespace CaseStudyTest
 {
@@ -272,9 +273,10 @@ namespace CaseStudyTest
         [Test]
         public async Task UpdateJobSeekerAsync_ShouldUpdateJobSeeker_WhenValidRequest()
         {
+            var jobSeekerId =  Guid.NewGuid().ToString();
             var jobSeeker = new JobSeeker
             {
-                JobSeekerId = Guid.NewGuid().ToString(),
+                JobSeekerId = jobSeekerId,
                 UserName = "testuser",
                 JobSeekerName = "Old Name",
                 Email = "oldemail@example.com",
@@ -297,11 +299,11 @@ namespace CaseStudyTest
             await _dbContext.JobSeekers.AddAsync(jobSeeker);
             await _dbContext.SaveChangesAsync();
 
-            var updatedJobSeeker = new JobSeeker
+            var updatedJobSeeker = new UpdateJobSeekerDTO
             {
                 JobSeekerName = "New Name",
+                UserName = "newuser",
                 Email = "newemail@example.com",
-                Password = "password456",
                 Address = "Address 1",
                 Gender = "Male",
                 ContactPhone = "123-555-0001",
@@ -318,7 +320,7 @@ namespace CaseStudyTest
                 EndDate = new DateTime(2022, 3, 1)
             };
 
-            var response = await _jobSeekerService.UpdateJobSeekerAsync(jobSeeker.JobSeekerId, updatedJobSeeker);
+            var response = await _jobSeekerService.UpdateJobSeekerAsync(jobSeekerId, updatedJobSeeker);
 
             Assert.That(response.Status, Is.EqualTo("Success"));
             Assert.That(response.Message, Is.EqualTo("Job Seeker updated successfully."));
@@ -331,9 +333,9 @@ namespace CaseStudyTest
         [Test]
         public async Task UpdateJobSeekerAsync_ShouldReturnFailure_WhenJobSeekerNotFound()
         {
-            var response = await _jobSeekerService.UpdateJobSeekerAsync(Guid.NewGuid().ToString(), new JobSeeker());
+            var response = await _jobSeekerService.UpdateJobSeekerAsync(Guid.NewGuid().ToString(), new UpdateJobSeekerDTO());
 
-            Assert.That(response.Status, Is.EqualTo("Success"));
+            Assert.That(response.Status, Is.EqualTo("Failure"));
             Assert.That(response.Message, Is.EqualTo("Job Seeker not found with the given ID."));
         }
     }

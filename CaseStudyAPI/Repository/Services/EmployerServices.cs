@@ -1,4 +1,5 @@
 ﻿using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -26,11 +27,11 @@ namespace CaseStudyAPI.Repository.Services
                 {
                     return new Response { Status = "Failure", Message = "An employer with this username or email already exists." };
                 }
-                if(employer.Role != null)
+                if (employer.Role != null)
                 {
-                    return new Response { Status = "Failure", Message = "Invalid Request Body"};
+                    return new Response { Status = "Failure", Message = "Invalid Request Body" };
                 }
-                employer.Password =  _authorizationServices.HashPassword(employer.Password);
+                employer.Password = _authorizationServices.HashPassword(employer.Password);
                 employer.EmployerId = Guid.NewGuid().ToString();
                 await _appDBContext.Employers.AddAsync(employer);
                 await _appDBContext.SaveChangesAsync();
@@ -38,7 +39,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return null;
             }
         }
@@ -66,7 +67,7 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return new Response
                 {
                     Status = "Failure",
@@ -78,16 +79,16 @@ namespace CaseStudyAPI.Repository.Services
         public async Task<List<Employer>> GetAllEmployersAsync()
         {
             var employers = await _appDBContext.Employers.ToListAsync();
-            if(employers == null)
+            if (employers == null)
             {
                 return null;
             }
             return employers;
         }
 
-        public async Task<Employer> GetEmployerByUserName(string UserName)
+        public async Task<Employer> GetEmployerByUserName(string userName)
         {
-            var existingEmployer = await _appDBContext.Employers.FirstOrDefaultAsync(e => e.UserName == UserName);
+            var existingEmployer = await _appDBContext.Employers.FirstOrDefaultAsync(e => e.UserName == userName);
             if (existingEmployer == null)
             {
                 return null;
@@ -95,20 +96,57 @@ namespace CaseStudyAPI.Repository.Services
             return existingEmployer;
         }
 
-          public async Task<Response> UpdateEmployerAsync(string employerId,Employer employer)
+        public async Task<Employer> GetEmployerByEmployerIdAsync(string employerId)
+        {
+            var existingEmployer = await _appDBContext.Employers.FirstOrDefaultAsync(e => e.EmployerId == employerId);
+            if (existingEmployer == null)
+            {
+                return null;
+            }
+            return existingEmployer;
+        }
+
+        public async Task<Response> UpdateEmployerAsync(string employerId, UpdateEmployerDTO employer)
         {
             try
             {
-                var employerUser = await _appDBContext.Employers.FirstOrDefaultAsync(employer => employer.EmployerId == employerId);
+                var employerUser = await _appDBContext.Employers.FirstOrDefaultAsync(e => e.EmployerId == employerId);
                 if (employerUser == null)
                 {
-                    _logger.LogError("Employer not found with given Id");
+                    _logger.LogError("Employer not found with given ID.");
                     return new Response
                     {
-                        Status = "Success",
+                        Status = "Failure",
                         Message = "Employer not found with the given ID."
                     };
                 }
+
+                if (employer.UserName != employerUser.UserName)
+                {
+                    var usernameExists = await _appDBContext.Employers.AnyAsync(e => e.UserName == employer.UserName);
+                    if (usernameExists)
+                    {
+                        return new Response
+                        {
+                            Status = "Failure",
+                            Message = "The username is already taken by another employer."
+                        };
+                    }
+                }
+
+                if (employer.Email != employerUser.Email)
+                {
+                    var emailExists = await _appDBContext.Employers.AnyAsync(e => e.Email == employer.Email);
+                    if (emailExists)
+                    {
+                        return new Response
+                        {
+                            Status = "Failure",
+                            Message = "The email is already taken by another employer."
+                        };
+                    }
+                }
+
                 employerUser.EmployerName = employer.EmployerName;
                 employerUser.UserName = employer.UserName;
                 employerUser.CompanyName = employer.CompanyName;
@@ -117,6 +155,7 @@ namespace CaseStudyAPI.Repository.Services
                 employerUser.Email = employer.Email;
 
                 await _appDBContext.SaveChangesAsync();
+
                 return new Response
                 {
                     Status = "Success",
@@ -125,11 +164,11 @@ namespace CaseStudyAPI.Repository.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Error updating employer: {ex.Message}");
                 return new Response
                 {
                     Status = "Failure",
-                    Message = $"An error occurred while updating the Employer: {ex.Message}"
+                    Message = $"An error occurred while updating the employer: {ex.Message}"
                 };
             }
         }

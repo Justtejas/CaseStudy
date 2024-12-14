@@ -1,4 +1,5 @@
 ﻿using CaseStudyAPI.Data;
+using CaseStudyAPI.DTO;
 using CaseStudyAPI.Models;
 using CaseStudyAPI.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -48,11 +49,11 @@ namespace CaseStudyAPI.Controllers
         [Authorize(Roles = "JobSeeker")]
         [HttpPut]
         [Route("UpdateJobSeeker/{jobSeekerId}")]
-        public async Task<ActionResult<bool>> UpdateJobSeekerAsync(string jobSeekerId, [FromBody] JobSeeker jobseekers)
+        public async Task<ActionResult<bool>> UpdateJobSeekerAsync(string jobSeekerId, [FromBody] UpdateJobSeekerDTO jobseeker)
         {
             try
             {
-                if (jobseekers == null)
+                if (jobseeker == null)
                 {
                     _logger.LogWarning("Bad Request");
                     return BadRequest(new ApiResponse<string>
@@ -62,23 +63,23 @@ namespace CaseStudyAPI.Controllers
                     });
                 }
 
-                var jobSeeker = await _jobseekerServices.UpdateJobSeekerAsync(jobSeekerId, jobseekers);
+                var updatedJobSeeker = await _jobseekerServices.UpdateJobSeekerAsync(jobSeekerId, jobseeker);
 
-                if (jobSeeker.Message == "Job Seeker not found with the given ID.")
+                if (updatedJobSeeker.Message != "Job Seeker updated successfully.")
                 {
                     return BadRequest(new ApiResponse<string>
                     {
                         Success = false,
-                        Message = jobSeeker.Message
+                        Message = updatedJobSeeker.Message
                     });
                 }
                 else
                 {
-                    return Ok(new ApiResponse<JobSeeker>
+                    return Ok(new ApiResponse<UpdateJobSeekerDTO>
                     {
                         Success = true,
                         Message = "JobSeeker updated successfully",
-                        Data = jobseekers
+                        Data = jobseeker
                     });
                 }
             }
@@ -92,6 +93,40 @@ namespace CaseStudyAPI.Controllers
                 });
             }
         }
+
+        [Authorize(Roles = "JobSeeker")]
+        [HttpGet]
+        [Route("GetJobSeekerByJobSeekerId/{jobSeekerId}")]
+        public async Task<IActionResult> GetJobSeekerByJobSeekerIdAsync(string jobSeekerId)
+        {
+            try
+            {
+                var jobSeeker = await _jobseekerServices.GetJobSeekerByJobSeekerIdAsync(jobSeekerId);
+
+
+                if (jobSeeker == null)
+                {
+                    _logger.LogError("JobSeeker not found with given jobseekerId");
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"The 'JobSeeker' with jobseekerId: {jobSeekerId} not found"
+                    });
+                }
+
+                return Ok( new ApiResponse<JobSeeker> { Data = jobSeeker, Success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string>
+                {
+                    Success = false,
+                    Error = "An error occurred while fetching JobSeeker."
+                });
+            }
+        }
+
 
         [Authorize(Roles = "Employer,JobSeeker")]
         [HttpGet]
