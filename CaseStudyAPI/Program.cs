@@ -92,7 +92,7 @@ namespace CaseStudyAPI
             app.UseHttpsRedirection();
             app.UseCors(options =>
             {
-                options.WithOrigins("http://localhost:3000")
+                options.WithOrigins("http://localhost:3000","http://localhost:3002","http://localhost:3001","http://localhost:3003")
                    .AllowAnyMethod()
                    .AllowAnyHeader()
                    .AllowCredentials();
