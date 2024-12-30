@@ -141,7 +141,7 @@ namespace CaseStudyAPI.Controllers
                 }
 
                 var jobListing = await _jobListingServices.UpdateJobListingAsync(jobListingId,employerId,model);
-                return Ok(new ApiResponse<string> { Success = true, Message = "Job Listing updated successfully" });
+                return Ok(new ApiResponse<string> { Success = true, Message = jobListing});
             }
             catch (InvalidOperationException ex)
             {

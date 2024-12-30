@@ -1,5 +1,4 @@
-﻿using CaseStudyAPI.DTO;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace CaseStudyAPI.Validations
 {
@@ -31,13 +30,20 @@ namespace CaseStudyAPI.Validations
 
         public static ValidationResult ValidateEndDate(DateTime endDate, ValidationContext context)
         {
-            var instance = (RegisterJobSeekerDTO)context.ObjectInstance;
+            var instance = context.ObjectInstance;
+            var startDateProperty = instance.GetType().GetProperty("StartDate");
 
-            if (endDate < instance.StartDate)
+            if (startDateProperty == null || startDateProperty.PropertyType != typeof(DateTime))
+            {
+                return new ValidationResult("StartDate property is missing or invalid in the object.");
+            }
+
+            var startDate = (DateTime)startDateProperty.GetValue(instance);
+
+            if (endDate < startDate)
             {
                 return new ValidationResult("End Date cannot be earlier than Start Date.");
             }
-
             if (endDate > DateTime.Now)
             {
                 return new ValidationResult("End Date cannot be in the future.");
