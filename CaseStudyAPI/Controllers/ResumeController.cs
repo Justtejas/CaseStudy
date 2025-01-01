@@ -46,10 +46,10 @@ namespace CaseStudyAPI.Controllers
         }
 
         [Authorize(Roles = "Employer")]
-        [HttpGet("download/{jobSeekerId}/{resumeId}")]
-        public async Task<IActionResult> DownloadFile(string jobSeekerId,string resumeId)
+        [HttpGet("download/{jobSeekerId}")]
+        public async Task<IActionResult> DownloadFile(string jobSeekerId)
         {
-            var file = await _resumeServices.GetResumeAsync(resumeId, jobSeekerId);
+            var file = await _resumeServices.GetResumeAsync(jobSeekerId);
             if (file == null)
             {
                 return NotFound("File not found");
@@ -74,26 +74,6 @@ namespace CaseStudyAPI.Controllers
             else
             {
                 return NotFound("File ID not found");
-            }
-        }
-
-        [Authorize(Roles = "JobSeeker")]
-        [HttpPut("update/{resumeId}")]
-        public async Task<IActionResult> UpdateFile(string resumeId, IFormFile newFile) {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-            {
-                return BadRequest("UserID not found");
-            }
-            try
-            {
-                var updatedFileName = await _resumeServices.UpdateResumeAsync(resumeId, userId, newFile);
-                return Ok($"Updated file to {newFile.FileName}");
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogError(ex.Message);
-                return BadRequest(ex.Message);
             }
         }
     }

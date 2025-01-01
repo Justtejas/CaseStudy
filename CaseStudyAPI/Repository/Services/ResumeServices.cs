@@ -19,29 +19,46 @@ namespace CaseStudyAPI.Repository.Services
                 throw new InvalidOperationException("Only PDF resumes are allowed.");
 
             if (resume.Length > FILE_SIZE_LIMIT)
-                throw new InvalidOperationException("resume size cannot exceed 5 MB.");
+                throw new InvalidOperationException("Resume size cannot exceed 5 MB.");
 
             using var dataStream = new MemoryStream();
             await resume.CopyToAsync(dataStream);
 
-            var resumeModel = new Resume
-            {
-                ResumeId = Guid.NewGuid().ToString(),
-                FileName = resume.FileName,
-                FileType = resume.ContentType,
-                FileSize = resume.Length,
-                UploadDate = DateTime.Now,
-                ModifiedDate = DateTime.Now,
-                FileData = dataStream.ToArray(),
-                JobSeekerId = jobSeekerId
-            };
+            var existingResume = await _context.Resumes.FirstOrDefaultAsync(r => r.JobSeekerId == jobSeekerId);
 
-            await _context.Resumes.AddAsync(resumeModel);
+            if (existingResume != null)
+            {
+                existingResume.FileName = resume.FileName;
+                existingResume.FileType = resume.ContentType;
+                existingResume.FileSize = resume.Length;
+                existingResume.ModifiedDate = DateTime.Now;
+                existingResume.FileData = dataStream.ToArray();
+            }
+            else
+            {
+                var newResume = new Resume
+                {
+                    ResumeId = Guid.NewGuid().ToString(),
+                    FileName = resume.FileName,
+                    FileType = resume.ContentType,
+                    FileSize = resume.Length,
+                    UploadDate = DateTime.Now,
+                    ModifiedDate = DateTime.Now,
+                    FileData = dataStream.ToArray(),
+                    JobSeekerId = jobSeekerId
+                };
+
+                await _context.Resumes.AddAsync(newResume);
+            }
+
             await _context.SaveChangesAsync();
+
             return new Response
             {
                 Status = "Success",
-                Message = $"Uploaded resume {resume.FileName}"
+                Message = existingResume != null
+                    ? $"Updated resume {resume.FileName}"
+                    : $"Uploaded resume {resume.FileName}"
             };
         }
 
@@ -60,9 +77,9 @@ namespace CaseStudyAPI.Repository.Services
             }
         }
 
-        public async Task<Resume> GetResumeAsync(string resumeId, string jobSeekerId)
+        public async Task<Resume> GetResumeAsync(string jobSeekerId)
         {
-            var resume = await _context.Resumes.Where(r => r.ResumeId == resumeId && r.JobSeekerId == jobSeekerId).SingleOrDefaultAsync();
+            var resume = await _context.Resumes.Where(r => r.JobSeekerId == jobSeekerId).SingleOrDefaultAsync();
             if (resume == null)
             {
                 return null;
@@ -70,32 +87,5 @@ namespace CaseStudyAPI.Repository.Services
             return resume;
         }
 
-        public async Task<string> UpdateResumeAsync(string resumeId, string jobSeekerId, IFormFile newFile)
-        {
-            var existingResume = await _context.Resumes
-           .Where(r => r.ResumeId == resumeId && r.JobSeekerId == jobSeekerId)
-           .SingleOrDefaultAsync() ?? throw new InvalidOperationException("File not found or you do not have permission to update it.");
-            if (newFile.ContentType != "application/pdf")
-            {
-                throw new InvalidOperationException("Only PDF files are allowed.");
-            }
-
-            if (newFile.Length > FILE_SIZE_LIMIT)
-            {
-                throw new InvalidOperationException("File size cannot exceed 5 MB.");
-            }
-
-            using var dataStream = new MemoryStream();
-            await newFile.CopyToAsync(dataStream);
-
-            existingResume.FileName = newFile.FileName;
-            existingResume.FileType = newFile.ContentType;
-            existingResume.FileSize = newFile.Length;
-            existingResume.FileData = dataStream.ToArray();
-            existingResume.ModifiedDate = DateTime.Now;
-
-            await _context.SaveChangesAsync();
-            return existingResume.FileName;
-        }
     }
 }

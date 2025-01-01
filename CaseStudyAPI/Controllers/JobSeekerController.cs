@@ -94,7 +94,7 @@ namespace CaseStudyAPI.Controllers
             }
         }
 
-        [Authorize(Roles = "JobSeeker")]
+        [Authorize(Roles = "Employer,JobSeeker")]
         [HttpGet]
         [Route("GetJobSeekerByJobSeekerId/{jobSeekerId}")]
         public async Task<IActionResult> GetJobSeekerByJobSeekerIdAsync(string jobSeekerId)
