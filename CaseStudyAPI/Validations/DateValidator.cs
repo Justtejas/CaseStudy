@@ -44,9 +44,9 @@ namespace CaseStudyAPI.Validations
             {
                 return new ValidationResult("End Date cannot be earlier than Start Date.");
             }
-            if (endDate > DateTime.Now)
+            if (endDate > DateTime.Now.AddDays(90))
             {
-                return new ValidationResult("End Date cannot be in the future.");
+                return new ValidationResult("End Date cannot be more than 90 Days in the future.");
             }
             return ValidationResult.Success;
         }
